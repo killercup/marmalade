@@ -4,6 +4,14 @@ version = "0.1.0"
 edition = "2021"
 
 [dependencies]
+color-eyre = "0.6.0"
+bevy = "0.6.1"
+bevy-inspector-egui = { version = "0.8.2", optional = true }
+bevy_editor_pls = { git = "https://github.com/jakobhellermann/bevy_editor_pls", optional = true }
+
+[features]
+dev = ["bevy-inspector-egui"]
+editor = ["bevy_editor_pls"]
 
 [workspace]
 default-members = ["."]
