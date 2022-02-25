@@ -1,0 +1,18 @@
+[package]
+name = "marmalade"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+
+[workspace]
+default-members = ["."]
+members = [".", "xtask"]
+
+# How about we make our game not super slow?
+[profile.dev]
+opt-level = 1
+
+# And how about we make our dependencies (like all the math) super fast?
+[profile.dev.package."*"]
+opt-level = 3

@@ -1,0 +1,4 @@
+[alias]
+xtask = "run --package xtask --"
+start = "run --package xtask -- start"
+serve = "run --package xtask -- serve"
