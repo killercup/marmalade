@@ -8,6 +8,8 @@ color-eyre = "0.6.0"
 bevy = "0.6.1"
 bevy-inspector-egui = { version = "0.8.2", optional = true }
 bevy_editor_pls = { git = "https://github.com/jakobhellermann/bevy_editor_pls", optional = true }
+bevy_tweening = "0.3.2"
+nalgebra-glm = "0.16.0"
 
 [features]
 dev = ["bevy-inspector-egui"]

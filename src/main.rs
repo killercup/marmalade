@@ -26,6 +26,7 @@ fn main() {
             SystemSet::new()
                 .with_run_criteria(FixedTimestep::step(1. / 60.))
                 .with_system(thingy::input)
+                .with_system(thingy::mouse_input)
                 .with_system(thingy::u_spin_me),
         )
         .register_type::<Thingy>()
@@ -35,10 +36,11 @@ fn main() {
 fn setup(mut commands: Commands) {
     commands.spawn_bundle(OrthographicCameraBundle::new_2d());
     commands.spawn_bundle(UiCameraBundle::default());
-    commands.insert_resource(ClearColor(Color::DARK_GRAY));
+    commands.insert_resource(ClearColor(Color::BLACK));
 
-    let offset = 60.;
-    let blox = 2500f32;
+    let scale = 10.;
+    let offset = 15.;
+    let blox = 10_000_f32;
 
     for x in 1..(blox as usize) {
         commands
@@ -49,11 +51,11 @@ fn setup(mut commands: Commands) {
                         (x as f32 % blox.sqrt()).floor() * offset - blox.sqrt() * offset / 2.0,
                         0.0,
                     ),
-                    scale: Vec3::new(50.0, 50.0, 0.0),
+                    scale: Vec3::new(scale, scale, 0.0),
                     ..Default::default()
                 },
                 sprite: Sprite {
-                    color: Color::rgb(0.5, 0.5, 1.0),
+                    color: Color::hsl(360.0 * x as f32 / blox, 0.5, 0.5),
                     ..Default::default()
                 },
                 ..Default::default()
