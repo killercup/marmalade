@@ -36,14 +36,17 @@ fn setup(mut commands: Commands) {
     commands.spawn_bundle(OrthographicCameraBundle::new_2d());
     commands.spawn_bundle(UiCameraBundle::default());
     commands.insert_resource(ClearColor(Color::DARK_GRAY));
+
     let offset = 60.;
-    for x in 1..500 {
+    let blox = 2500f32;
+
+    for x in 1..(blox as usize) {
         commands
             .spawn_bundle(SpriteBundle {
                 transform: Transform {
                     translation: Vec3::new(
-                        (x as f32 / 500f32.sqrt()).floor() * offset - 500f32.sqrt() * offset / 2.0,
-                        (x as f32 % 500f32.sqrt()).floor() * offset - 500f32.sqrt() * offset / 2.0,
+                        (x as f32 / blox.sqrt()).floor() * offset - blox.sqrt() * offset / 2.0,
+                        (x as f32 % blox.sqrt()).floor() * offset - blox.sqrt() * offset / 2.0,
                         0.0,
                     ),
                     scale: Vec3::new(50.0, 50.0, 0.0),
@@ -59,6 +62,6 @@ fn setup(mut commands: Commands) {
                 rotation: 0.0,
                 position: Vec3::ZERO,
             })
-            .insert(Name::new("My block"));
+            .insert(Name::new(format!("My block {x}")));
     }
 }
