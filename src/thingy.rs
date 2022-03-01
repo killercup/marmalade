@@ -43,10 +43,10 @@ pub fn mouse_input(
     frame_time: Res<Time>,
 ) {
     let mut totaloffset = Vec3::ZERO;
-    let move_speed = 20.;
+    let move_speed = 400.;
 
     for ev in motion.iter() {
-        totaloffset += Vec3::new(ev.delta.x, ev.delta.y, 0.);
+        totaloffset += Vec3::new(ev.delta.x, -ev.delta.y, 0.);
     }
 
     let window = windows.get_primary().unwrap();
@@ -65,18 +65,19 @@ pub fn mouse_input(
     for (mut velocity, transform, thingy) in query.iter_mut() {
         let distance_from_mouse_pointer = Vec3::distance(cursor_position, transform.translation);
         let influence = 1. - nalgebra_glm::smoothstep(100., 420., distance_from_mouse_pointer);
-        let move_back_force_amount = 0.1;
-        let move_back_force =
-            thingy.original_position - transform.translation * move_back_force_amount;
-        *velocity =
-            velocity.with_linear((velocity.linear + totaloffset) * influence + move_back_force);
+
+        *velocity = velocity.with_linear((velocity.linear + totaloffset) * influence);
     }
 }
 
 pub fn go_home(mut query: Query<(&mut Velocity, &Transform, &Thingy)>) {
     for (mut velocity, transform, thingy) in query.iter_mut() {
         let distance = thingy.original_position.distance(transform.translation);
-        let direction = (thingy.original_position - transform.translation);
-        *velocity = velocity.with_linear(velocity.linear + direction * distance.sqrt());
+        if distance > 1. {
+            let direction = Vec3::normalize(thingy.original_position - transform.translation);
+            let force_mult = 0.01;
+            *velocity = velocity
+                .with_linear(velocity.linear + direction * distance * distance * force_mult);
+        }
     }
 }
