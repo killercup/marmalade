@@ -1,6 +1,6 @@
 use std::f32::consts::PI;
 
-use bevy::{core::FixedTimestep, prelude::*};
+use bevy::{core::FixedTimestep, input::mouse::MouseWheel, prelude::*};
 use heron::prelude::*;
 
 #[cfg(feature = "editor")]
@@ -31,6 +31,7 @@ fn main() {
     app.add_system_set(
         SystemSet::new()
             .with_run_criteria(FixedTimestep::step(1. / 60.))
+            .with_system(zoom)
             .with_system(thingy::input)
             .with_system(thingy::mouse_input)
             .with_system(thingy::go_home),
@@ -38,6 +39,9 @@ fn main() {
     app.register_type::<Thingy>();
     app.run();
 }
+
+#[derive(Component)]
+struct MainCamera;
 
 fn setup(
     mut commands: Commands,
@@ -47,10 +51,17 @@ fn setup(
     commands.spawn_bundle(UiCameraBundle::default());
     commands.insert_resource(ClearColor(Color::BLACK));
 
-    commands.spawn_bundle(PerspectiveCameraBundle {
-        transform: Transform::from_xyz(0.0, 0.0, 900.0),
-        ..Default::default()
-    });
+    commands
+        .spawn_bundle(PerspectiveCameraBundle {
+            transform: Transform::from_xyz(0.0, 0.0, 900.0),
+            perspective_projection: PerspectiveProjection {
+                far: 9000.,
+                near: 0.0001,
+                ..Default::default()
+            },
+            ..Default::default()
+        })
+        .insert(MainCamera);
     commands.insert_resource(AmbientLight {
         color: Color::ANTIQUE_WHITE,
         brightness: 0.95,
@@ -107,5 +118,29 @@ fn setup(
             })
             .insert(Thingy { original_position })
             .insert(Name::new(format!("My block {x}")));
+    }
+}
+
+fn zoom(
+    mut scroll_evr: EventReader<MouseWheel>,
+    mut query: Query<(&mut Transform,), With<MainCamera>>,
+) {
+    use bevy::input::mouse::MouseScrollUnit;
+
+    let mut camera = if let Ok((camera,)) = query.get_single_mut() {
+        camera
+    } else {
+        info!("no camera");
+        return;
+    };
+
+    for ev in scroll_evr.iter() {
+        let y = match ev.unit {
+            MouseScrollUnit::Line => ev.y * 40.,
+            MouseScrollUnit::Pixel => ev.y,
+        };
+        info!("wheeee {y}");
+
+        camera.translation.z += y;
     }
 }
