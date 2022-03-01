@@ -99,11 +99,11 @@ fn setup(
                 half_extends: size / 2.,
                 border_radius: None,
             })
-            .insert(Velocity::from(Vec2::ZERO).with_angular(AxisAngle::new(Vec3::Z, -PI)))
+            .insert(Velocity::from(Vec2::ZERO))
             .insert(PhysicMaterial {
-                restitution: 1.,
+                restitution: 0.9,
+                friction: 0.2,
                 density: 5.,
-                ..Default::default()
             })
             .insert(Thingy { original_position })
             .insert(Name::new(format!("My block {x}")));
