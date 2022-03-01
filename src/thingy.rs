@@ -4,9 +4,7 @@ use heron::Velocity;
 #[derive(Component, Reflect, Default, Debug)]
 #[reflect(Component)]
 pub struct Thingy {
-    pub rotation: f32,
-    pub position: Vec3,
-    pub startpos: Vec3,
+    pub original_position: Vec3,
 }
 
 pub fn input(
@@ -68,7 +66,8 @@ pub fn mouse_input(
         let distance_from_mouse_pointer = Vec3::distance(cursor_position, transform.translation);
         let influence = 1. - nalgebra_glm::smoothstep(100., 420., distance_from_mouse_pointer);
         let move_back_force_amount = 0.1;
-        let move_back_force = thingy.startpos - transform.translation * move_back_force_amount;
+        let move_back_force =
+            thingy.original_position - transform.translation * move_back_force_amount;
         *velocity =
             velocity.with_linear((velocity.linear + totaloffset) * influence + move_back_force);
     }

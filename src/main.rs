@@ -50,14 +50,15 @@ fn setup(mut commands: Commands) {
 
     for x in 1..(blox as usize) {
         let size = Vec3::new(scale, scale, 0.0);
+        let original_position = Vec3::new(
+            (x as f32 / blox.sqrt()).floor() * offset - blox.sqrt() * offset / 2.0,
+            (x as f32 % blox.sqrt()).floor() * offset - blox.sqrt() * offset / 2.0,
+            0.0,
+        );
         commands
             .spawn_bundle(SpriteBundle {
                 transform: Transform {
-                    translation: Vec3::new(
-                        (x as f32 / blox.sqrt()).floor() * offset - blox.sqrt() * offset / 2.0,
-                        (x as f32 % blox.sqrt()).floor() * offset - blox.sqrt() * offset / 2.0,
-                        0.0,
-                    ),
+                    translation: original_position,
                     scale: size,
                     ..Default::default()
                 },
@@ -78,11 +79,7 @@ fn setup(mut commands: Commands) {
                 density: 5.,
                 ..Default::default()
             })
-            .insert(Thingy {
-                rotation: 0.0,
-                position: Vec3::ZERO,
-                startpos: Vec3::ZERO,
-            })
+            .insert(Thingy { original_position })
             .insert(Name::new(format!("My block {x}")));
     }
 }
