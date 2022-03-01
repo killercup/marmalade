@@ -70,14 +70,33 @@ pub fn mouse_input(
     }
 }
 
-pub fn go_home(mut query: Query<(&mut Velocity, &Transform, &Thingy)>) {
+pub fn go_home(
+    mut motion: EventReader<MouseMotion>,
+    windows: Res<Windows>,
+    mut query: Query<(&mut Velocity, &Transform, &Thingy)>,
+) {
+    let window = windows.get_primary().unwrap();
+
+    let cursor_position = if let Some(pos) = window.cursor_position() {
+        Vec3::new(
+            pos.x - window.width() / 2.,
+            pos.y - window.height() / 2.,
+            0.,
+        )
+    } else {
+        Vec3::ZERO
+    };
     for (mut velocity, transform, thingy) in query.iter_mut() {
         let distance = thingy.original_position.distance(transform.translation);
         if distance > 1. {
+            let distance_from_mouse_pointer =
+                Vec3::distance(cursor_position, transform.translation);
+            let influence = nalgebra_glm::smoothstep(100., 420., distance_from_mouse_pointer);
             let direction = Vec3::normalize(thingy.original_position - transform.translation);
-            let force_mult = 0.01;
-            *velocity = velocity
-                .with_linear(velocity.linear + direction * distance * distance * force_mult);
+            let force_mult = 0.1;
+            *velocity = velocity.with_linear(
+                velocity.linear + direction * distance * distance * force_mult * influence,
+            );
         }
     }
 }
