@@ -39,14 +39,41 @@ fn main() {
     app.run();
 }
 
-fn setup(mut commands: Commands) {
-    commands.spawn_bundle(OrthographicCameraBundle::new_2d());
+fn setup(
+    mut commands: Commands,
+    mut meshes: ResMut<Assets<Mesh>>,
+    mut materials: ResMut<Assets<StandardMaterial>>,
+) {
     commands.spawn_bundle(UiCameraBundle::default());
     commands.insert_resource(ClearColor(Color::BLACK));
+
+    commands.spawn_bundle(PerspectiveCameraBundle {
+        transform: Transform::from_xyz(0.0, 0.0, 700.0),
+        ..Default::default()
+    });
+    commands.insert_resource(AmbientLight {
+        color: Color::ANTIQUE_WHITE,
+        brightness: 0.95,
+    });
+    commands.spawn_bundle(PointLightBundle {
+        transform: Transform::from_xyz(5.0, 5.0, 500.0),
+        point_light: PointLight {
+            intensity: 1.0,
+            range: 250.,
+            color: Color::WHITE,
+            shadow_depth_bias: 0.0,
+            shadow_normal_bias: 0.0,
+            shadows_enabled: true,
+            ..Default::default()
+        },
+        ..Default::default()
+    });
 
     let scale = 10.;
     let offset = 15.;
     let blox = 10_000_f32;
+
+    let mesh = meshes.add(Mesh::from(shape::Cube { size: scale }));
 
     for x in 1..(blox as usize) {
         let size = Vec3::new(scale, scale, 0.0);
@@ -55,17 +82,16 @@ fn setup(mut commands: Commands) {
             (x as f32 % blox.sqrt()).floor() * offset - blox.sqrt() * offset / 2.0,
             0.0,
         );
+        let material = materials.add(StandardMaterial {
+            base_color: Color::hsl(360.0 * x as f32 / blox, 0.5, 0.5),
+            ..Default::default()
+        });
+
         commands
-            .spawn_bundle(SpriteBundle {
-                transform: Transform {
-                    translation: original_position,
-                    scale: size,
-                    ..Default::default()
-                },
-                sprite: Sprite {
-                    color: Color::hsl(360.0 * x as f32 / blox, 0.5, 0.5),
-                    ..Default::default()
-                },
+            .spawn_bundle(PbrBundle {
+                mesh: mesh.clone(),
+                material: material.clone(),
+                transform: Transform::from_translation(original_position),
                 ..Default::default()
             })
             .insert(RigidBody::Dynamic)
