@@ -81,6 +81,7 @@ fn setup(mut commands: Commands) {
             .insert(Thingy {
                 rotation: 0.0,
                 position: Vec3::ZERO,
+                startpos: Vec3::ZERO,
             })
             .insert(Name::new(format!("My block {x}")));
     }

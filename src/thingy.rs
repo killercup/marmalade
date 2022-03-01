@@ -6,6 +6,7 @@ use heron::Velocity;
 pub struct Thingy {
     pub rotation: f32,
     pub position: Vec3,
+    pub startpos: Vec3,
 }
 
 pub fn input(
@@ -40,7 +41,7 @@ pub fn input(
 pub fn mouse_input(
     mut motion: EventReader<MouseMotion>,
     windows: Res<Windows>,
-    mut query: Query<(&mut Velocity, &Transform), With<Thingy>>,
+    mut query: Query<(&mut Velocity, &Transform, &Thingy)>,
     frame_time: Res<Time>,
 ) {
     let mut totaloffset = Vec3::ZERO;
@@ -63,9 +64,12 @@ pub fn mouse_input(
 
     totaloffset = totaloffset * move_speed * frame_time.delta_seconds();
 
-    for (mut velocity, transform) in query.iter_mut() {
+    for (mut velocity, transform, thingy) in query.iter_mut() {
         let distance_from_mouse_pointer = Vec3::distance(cursor_position, transform.translation);
         let influence = 1. - nalgebra_glm::smoothstep(100., 420., distance_from_mouse_pointer);
-        *velocity = velocity.with_linear(velocity.linear + totaloffset * influence);
+        let move_back_force_amount = 0.1;
+        let move_back_force = thingy.startpos - transform.translation * move_back_force_amount;
+        *velocity =
+            velocity.with_linear((velocity.linear + totaloffset) * influence + move_back_force);
     }
 }
