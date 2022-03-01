@@ -1,4 +1,4 @@
-use std::process;
+use std::{path::PathBuf, process};
 
 use xtask_wasm::{anyhow::Result, default_dist_dir};
 
@@ -12,6 +12,7 @@ struct Cli {
 enum Command {
     Start(xtask_wasm::Watch),
     Serve(xtask_wasm::DevServer),
+    Release,
 }
 
 fn main() -> Result<()> {
@@ -20,6 +21,7 @@ fn main() -> Result<()> {
     match args.cmd {
         Command::Start(arg) => start(arg)?,
         Command::Serve(arg) => serve(arg)?,
+        Command::Release => release(),
     }
 
     Ok(())
@@ -48,4 +50,19 @@ fn serve(mut dev_server: xtask_wasm::DevServer) -> Result<()> {
     dev_server.start(default_dist_dir(false))?;
 
     Ok(())
+}
+
+fn release() {
+    let status = process::Command::new("cargo")
+        .arg("build")
+        .arg("--release")
+        .status()
+        .unwrap();
+    if status.success() {
+        let target_dir = std::env::var("CARGO_TARGET_DIR").unwrap_or_else(|_| "./target".into());
+        let path = PathBuf::from(target_dir).join("release").join("marmalade");
+        println!("Binary is here: {path:?}");
+    } else {
+        eprintln!("FAILED! no release for you");
+    }
 }

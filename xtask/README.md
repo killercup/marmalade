@@ -9,3 +9,7 @@ Compile on file change and launch app.
 ## `cargo serve`
 
 Not working. Gonna be amazing for WASM.
+
+## `cargo release`
+
+Build in release mode and tells you where you can find the binary.
