@@ -43,7 +43,7 @@ pub fn mouse_input(
     frame_time: Res<Time>,
 ) {
     let mut totaloffset = Vec3::ZERO;
-    let move_speed = 10.;
+    let move_speed = 20.;
 
     for ev in motion.iter() {
         totaloffset += Vec3::new(ev.delta.x, ev.delta.y, 0.);
@@ -70,5 +70,13 @@ pub fn mouse_input(
             thingy.original_position - transform.translation * move_back_force_amount;
         *velocity =
             velocity.with_linear((velocity.linear + totaloffset) * influence + move_back_force);
+    }
+}
+
+pub fn go_home(mut query: Query<(&mut Velocity, &Transform, &Thingy)>) {
+    for (mut velocity, transform, thingy) in query.iter_mut() {
+        let distance = thingy.original_position.distance(transform.translation);
+        let direction = (thingy.original_position - transform.translation);
+        *velocity = velocity.with_linear(velocity.linear + direction * distance.sqrt());
     }
 }
