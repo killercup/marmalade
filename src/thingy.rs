@@ -39,7 +39,7 @@ pub fn input(
 pub fn mouse_input(
     mut motion: EventReader<MouseMotion>,
     windows: Res<Windows>,
-    mut query: Query<(&mut Velocity, &Transform, &Thingy)>,
+    mut query: Query<(&mut Velocity, &Transform), With<Thingy>>,
     frame_time: Res<Time>,
 ) {
     let mut totaloffset = Vec3::ZERO;
@@ -62,7 +62,7 @@ pub fn mouse_input(
 
     totaloffset = totaloffset * move_speed * frame_time.delta_seconds();
 
-    for (mut velocity, transform, thingy) in query.iter_mut() {
+    for (mut velocity, transform) in query.iter_mut() {
         let distance_from_mouse_pointer = Vec3::distance(cursor_position, transform.translation);
         let influence = 1. - nalgebra_glm::smoothstep(100., 420., distance_from_mouse_pointer);
 
@@ -70,11 +70,7 @@ pub fn mouse_input(
     }
 }
 
-pub fn go_home(
-    mut motion: EventReader<MouseMotion>,
-    windows: Res<Windows>,
-    mut query: Query<(&mut Velocity, &Transform, &Thingy)>,
-) {
+pub fn go_home(windows: Res<Windows>, mut query: Query<(&mut Velocity, &Transform, &Thingy)>) {
     let window = windows.get_primary().unwrap();
 
     let cursor_position = if let Some(pos) = window.cursor_position() {
