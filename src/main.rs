@@ -48,7 +48,7 @@ fn setup(
     commands.insert_resource(ClearColor(Color::BLACK));
 
     commands.spawn_bundle(PerspectiveCameraBundle {
-        transform: Transform::from_xyz(0.0, 0.0, 700.0),
+        transform: Transform::from_xyz(0.0, 0.0, 900.0),
         ..Default::default()
     });
     commands.insert_resource(AmbientLight {

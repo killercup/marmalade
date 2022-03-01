@@ -64,7 +64,7 @@ pub fn mouse_input(
 
     for (mut velocity, transform) in query.iter_mut() {
         let distance_from_mouse_pointer = Vec3::distance(cursor_position, transform.translation);
-        let influence = 1. - nalgebra_glm::smoothstep(100., 420., distance_from_mouse_pointer);
+        let influence = 1. - nalgebra_glm::smoothstep(100., 600., distance_from_mouse_pointer);
 
         *velocity = velocity.with_linear((velocity.linear + totaloffset) * influence);
     }
@@ -87,9 +87,9 @@ pub fn go_home(windows: Res<Windows>, mut query: Query<(&mut Velocity, &Transfor
         if distance > 0.01 {
             let distance_from_mouse_pointer =
                 Vec3::distance(cursor_position, transform.translation);
-            let influence = nalgebra_glm::smoothstep(100., 420., distance_from_mouse_pointer);
+            let influence = nalgebra_glm::smoothstep(100., 620., distance_from_mouse_pointer);
             let direction = Vec3::normalize(thingy.original_position - transform.translation);
-            let force_mult = 40.;
+            let force_mult = 30.;
             *velocity = velocity.with_linear(
                 velocity.linear + direction * distance.sqrt() * force_mult * influence,
             );
