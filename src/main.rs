@@ -33,8 +33,7 @@ fn main() {
             .with_run_criteria(FixedTimestep::step(1. / 60.))
             .with_system(thingy::input)
             .with_system(thingy::mouse_input)
-            .with_system(thingy::go_home)
-            .label("movin"),
+            .with_system(thingy::go_home),
     );
     app.register_type::<Thingy>();
     app.run();

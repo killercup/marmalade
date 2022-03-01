@@ -88,7 +88,7 @@ pub fn go_home(
     };
     for (mut velocity, transform, thingy) in query.iter_mut() {
         let distance = thingy.original_position.distance(transform.translation);
-        if distance > 1. {
+        if distance > 0.01 {
             let distance_from_mouse_pointer =
                 Vec3::distance(cursor_position, transform.translation);
             let influence = nalgebra_glm::smoothstep(100., 420., distance_from_mouse_pointer);
