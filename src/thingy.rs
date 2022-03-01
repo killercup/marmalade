@@ -93,9 +93,9 @@ pub fn go_home(
                 Vec3::distance(cursor_position, transform.translation);
             let influence = nalgebra_glm::smoothstep(100., 420., distance_from_mouse_pointer);
             let direction = Vec3::normalize(thingy.original_position - transform.translation);
-            let force_mult = 0.1;
+            let force_mult = 10.;
             *velocity = velocity.with_linear(
-                velocity.linear + direction * distance * distance * force_mult * influence,
+                velocity.linear + direction * distance.sqrt() * force_mult * influence,
             );
         }
     }
