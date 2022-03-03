@@ -1,5 +1,3 @@
-use std::f32::consts::PI;
-
 use bevy::{core::FixedTimestep, input::mouse::MouseWheel, prelude::*};
 use heron::prelude::*;
 
@@ -10,8 +8,9 @@ use bevy_editor_pls::prelude::*;
 #[cfg(feature = "dev")]
 use bevy_inspector_egui::WorldInspectorPlugin;
 
-mod thingy;
-use thingy::Thingy;
+mod tile;
+use tile::{Tile, TileKind};
+mod map;
 
 fn main() {
     color_eyre::install().unwrap();
@@ -32,11 +31,11 @@ fn main() {
         SystemSet::new()
             .with_run_criteria(FixedTimestep::step(1. / 60.))
             .with_system(zoom)
-            .with_system(thingy::input)
-            .with_system(thingy::mouse_input)
-            .with_system(thingy::go_home),
+            .with_system(tile::input)
+            .with_system(tile::mouse_input)
+            .with_system(tile::go_home),
     );
-    app.register_type::<Thingy>();
+    app.register_type::<Tile>();
     app.run();
 }
 
@@ -116,7 +115,10 @@ fn setup(
                 friction: 0.2,
                 density: 5.,
             })
-            .insert(Thingy { original_position })
+            .insert(Tile {
+                original_position,
+                kind: TileKind::Fine,
+            })
             .insert(Name::new(format!("My block {x}")));
     }
 }

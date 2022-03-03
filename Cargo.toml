@@ -11,6 +11,7 @@ bevy_editor_pls = { git = "https://github.com/jakobhellermann/bevy_editor_pls", 
 bevy_tweening = "0.3.2"
 nalgebra-glm = "0.16.0"
 heron = { version = "2", features = ["2d"] }
+rand = "0.8.5"
 
 [features]
 dev = ["bevy-inspector-egui"]

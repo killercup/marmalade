@@ -3,13 +3,31 @@ use heron::Velocity;
 
 #[derive(Component, Reflect, Default, Debug)]
 #[reflect(Component)]
-pub struct Thingy {
+pub struct Tile {
     pub original_position: Vec3,
+    pub kind: TileKind,
+}
+
+#[derive(Component, Reflect, Debug, Copy, Clone, Eq, PartialEq)]
+#[reflect(Component)]
+pub enum TileKind {
+    /// Is a bomb
+    Boom,
+    /// Is a bomb neighbor
+    Danger(u8),
+    /// Empty tile
+    Fine,
+}
+
+impl Default for TileKind {
+    fn default() -> Self {
+        Self::Fine
+    }
 }
 
 pub fn input(
     keys: Res<Input<KeyCode>>,
-    mut query: Query<(&mut Transform,), With<Thingy>>,
+    mut query: Query<(&mut Transform,), With<Tile>>,
     frame_time: Res<Time>,
 ) {
     let mut totaloffset = Vec3::ZERO;
@@ -39,7 +57,7 @@ pub fn input(
 pub fn mouse_input(
     mut motion: EventReader<MouseMotion>,
     windows: Res<Windows>,
-    mut query: Query<(&mut Velocity, &Transform), With<Thingy>>,
+    mut query: Query<(&mut Velocity, &Transform), With<Tile>>,
     frame_time: Res<Time>,
 ) {
     let mut totaloffset = Vec3::ZERO;
@@ -70,7 +88,7 @@ pub fn mouse_input(
     }
 }
 
-pub fn go_home(windows: Res<Windows>, mut query: Query<(&mut Velocity, &Transform, &Thingy)>) {
+pub fn go_home(windows: Res<Windows>, mut query: Query<(&mut Velocity, &Transform, &Tile)>) {
     let window = windows.get_primary().unwrap();
 
     let cursor_position = if let Some(pos) = window.cursor_position() {
