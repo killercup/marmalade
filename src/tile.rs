@@ -6,6 +6,7 @@ use heron::Velocity;
 pub struct Tile {
     pub original_position: Vec3,
     pub kind: TileKind,
+    pub index_in_map: usize,
 }
 
 #[derive(Component, Reflect, Debug, Copy, Clone, Eq, PartialEq)]
@@ -82,35 +83,22 @@ pub fn mouse_input(
 
     for (mut velocity, transform) in query.iter_mut() {
         let distance_from_mouse_pointer = Vec3::distance(cursor_position, transform.translation);
-        let influence = 1. - nalgebra_glm::smoothstep(100., 600., distance_from_mouse_pointer);
+        let influence = 1. - nalgebra_glm::smoothstep(3., 20., distance_from_mouse_pointer);
 
         *velocity = velocity.with_linear((velocity.linear + totaloffset) * influence);
     }
 }
 
-pub fn go_home(windows: Res<Windows>, mut query: Query<(&mut Velocity, &Transform, &Tile)>) {
-    let window = windows.get_primary().unwrap();
-
-    let cursor_position = if let Some(pos) = window.cursor_position() {
-        Vec3::new(
-            pos.x - window.width() / 2.,
-            pos.y - window.height() / 2.,
-            0.,
-        )
-    } else {
-        Vec3::ZERO
-    };
+pub fn go_home(mut query: Query<(&mut Velocity, &Transform, &Tile)>) {
     for (mut velocity, transform, thingy) in query.iter_mut() {
         let distance = thingy.original_position.distance(transform.translation);
-        if distance > 0.01 {
-            let distance_from_mouse_pointer =
-                Vec3::distance(cursor_position, transform.translation);
-            let influence = nalgebra_glm::smoothstep(100., 620., distance_from_mouse_pointer);
-            let direction = Vec3::normalize(thingy.original_position - transform.translation);
-            let force_mult = 30.;
-            *velocity = velocity.with_linear(
-                velocity.linear + direction * distance.sqrt() * force_mult * influence,
-            );
+        if distance < 0.001 {
+            continue;
         }
+
+        let influence = nalgebra_glm::smoothstep(0., 10., distance.sqrt());
+        let direction = Vec3::normalize(thingy.original_position - transform.translation);
+        let force_mult = 150.;
+        *velocity = velocity.with_linear(velocity.linear + direction * influence * force_mult);
     }
 }

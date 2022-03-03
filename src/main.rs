@@ -9,8 +9,14 @@ use bevy_editor_pls::prelude::*;
 use bevy_inspector_egui::WorldInspectorPlugin;
 
 mod tile;
+use map::Map;
 use tile::{Tile, TileKind};
 mod map;
+
+const BLOCK_SIZE: f32 = 20.;
+const BLOCK_OFFSET: f32 = 35.;
+const MAP_ROWS: usize = 24;
+const MAP_COLUMNS: usize = 24;
 
 fn main() {
     color_eyre::install().unwrap();
@@ -27,10 +33,12 @@ fn main() {
         .add_plugin(FrameTimeDiagnosticsPlugin);
 
     app.add_startup_system(setup);
+    app.add_startup_system(create_map);
     app.add_system_set(
         SystemSet::new()
             .with_run_criteria(FixedTimestep::step(1. / 60.))
             .with_system(zoom)
+            .with_system(set_map)
             .with_system(tile::input)
             .with_system(tile::mouse_input)
             .with_system(tile::go_home),
@@ -39,14 +47,17 @@ fn main() {
     app.run();
 }
 
+#[derive(Debug, Clone, Copy)]
+enum Stage {
+    NewGame,
+    MapSet,
+    KillScreen,
+}
+
 #[derive(Component)]
 struct MainCamera;
 
-fn setup(
-    mut commands: Commands,
-    mut meshes: ResMut<Assets<Mesh>>,
-    mut materials: ResMut<Assets<StandardMaterial>>,
-) {
+fn setup(mut commands: Commands) {
     commands.spawn_bundle(UiCameraBundle::default());
     commands.insert_resource(ClearColor(Color::BLACK));
 
@@ -78,29 +89,35 @@ fn setup(
         },
         ..Default::default()
     });
+}
 
-    let scale = 10.;
-    let offset = 15.;
-    let blox = 10_000_f32;
+fn create_map(
+    mut commands: Commands,
+    mut meshes: ResMut<Assets<Mesh>>,
+    mut materials: ResMut<Assets<StandardMaterial>>,
+) {
+    let mesh = meshes.add(Mesh::from(shape::Cube { size: BLOCK_SIZE }));
+    let green_tile = materials.add(StandardMaterial {
+        base_color: Color::hsl(125., 0.5, 0.5),
+        ..Default::default()
+    });
+    commands.insert_resource(Stage::NewGame);
 
-    let mesh = meshes.add(Mesh::from(shape::Cube { size: scale }));
+    let map = Map::new(MAP_ROWS, MAP_COLUMNS);
+    let blox = (MAP_ROWS * MAP_COLUMNS) as f32;
 
-    for x in 1..(blox as usize) {
-        let size = Vec3::new(scale, scale, 0.0);
+    for (x, kind) in map.map.iter().enumerate() {
+        let size = Vec3::new(BLOCK_SIZE, BLOCK_SIZE, 0.0);
         let original_position = Vec3::new(
-            (x as f32 / blox.sqrt()).floor() * offset - blox.sqrt() * offset / 2.0,
-            (x as f32 % blox.sqrt()).floor() * offset - blox.sqrt() * offset / 2.0,
+            (x as f32 / blox.sqrt()).floor() * BLOCK_OFFSET - blox.sqrt() * BLOCK_OFFSET / 2.0,
+            (x as f32 % blox.sqrt()).floor() * BLOCK_OFFSET - blox.sqrt() * BLOCK_OFFSET / 2.0,
             0.0,
         );
-        let material = materials.add(StandardMaterial {
-            base_color: Color::hsl(360.0 * x as f32 / blox, 0.5, 0.5),
-            ..Default::default()
-        });
 
         commands
             .spawn_bundle(PbrBundle {
                 mesh: mesh.clone(),
-                material: material.clone(),
+                material: green_tile.clone(),
                 transform: Transform::from_translation(original_position),
                 ..Default::default()
             })
@@ -113,14 +130,61 @@ fn setup(
             .insert(PhysicMaterial {
                 restitution: 0.9,
                 friction: 0.2,
-                density: 5.,
+                density: 1.,
             })
             .insert(Tile {
                 original_position,
-                kind: TileKind::Fine,
+                kind: *kind,
+                index_in_map: x,
             })
             .insert(Name::new(format!("My block {x}")));
     }
+
+    commands.insert_resource(map);
+}
+
+fn set_map(
+    keys: Res<Input<KeyCode>>,
+    mut stage: ResMut<Stage>,
+    mut map: ResMut<Map>,
+    mut materials: ResMut<Assets<StandardMaterial>>,
+    mut query: Query<(&mut Tile, &mut Handle<StandardMaterial>)>,
+) {
+    if !keys.just_pressed(KeyCode::X) {
+        return;
+    }
+    if !matches!(*stage, Stage::NewGame) {
+        return;
+    }
+
+    map.set_bombs(16);
+
+    let red_tile = materials.add(StandardMaterial {
+        base_color: Color::hsl(15., 0.5, 0.5),
+        ..Default::default()
+    });
+    let orange_tile = materials.add(StandardMaterial {
+        base_color: Color::hsl(55., 0.5, 0.5),
+        ..Default::default()
+    });
+
+    for (mut tile, mut material) in query.iter_mut() {
+        tile.kind = map.map[tile.index_in_map];
+        match tile.kind {
+            TileKind::Boom => {
+                *material = red_tile.clone();
+            }
+            TileKind::Danger(_) => {
+                *material = orange_tile.clone();
+            }
+            TileKind::Fine => {
+                // same old green
+            }
+        }
+    }
+
+    *stage = Stage::MapSet;
+    info!("Game set");
 }
 
 fn zoom(
@@ -141,7 +205,6 @@ fn zoom(
             MouseScrollUnit::Line => ev.y * 40.,
             MouseScrollUnit::Pixel => ev.y,
         };
-        info!("wheeee {y}");
 
         camera.translation.z += y;
     }

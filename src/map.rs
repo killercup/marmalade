@@ -24,6 +24,48 @@ impl Map {
         }
     }
 
+    pub fn index_to_coord(&self, index: usize) -> Option<(usize, usize)> {
+        let len = self.map.len();
+        if index > len {
+            warn!("tried to fetch coords for index {index} in map of length {len}");
+            return None;
+        }
+        let (x, y) = (index / self.width, index % self.width);
+
+        Some((x, y))
+    }
+
+    pub fn coord_to_index(&self, (x, y): (usize, usize)) -> Option<usize> {
+        // let (x, y) = (row - 1, column - 1);
+        let width = self.width;
+        if x > self.width {
+            warn!(
+                "tried to fetch index for coords {x},{y} but {x} is greater than map width {width}"
+            );
+            return None;
+        }
+        let height = self.height;
+        if x > self.height {
+            warn!("tried to fetch index for coords {x},{y} but {x} is greater than map height {height}");
+            return None;
+        }
+
+        let index = x * width + y;
+
+        let len = self.map.len();
+        if index > len {
+            warn!("tried to fetch index for {x},{y} in map of length {len} but calculated index {index} is out of bounds");
+            return None;
+        }
+
+        Some(index)
+    }
+
+    pub fn at_coords(&self, coords: (usize, usize)) -> Option<TileKind> {
+        let index = self.coord_to_index(coords)?;
+        self.map.get(index).copied()
+    }
+
     pub fn set_bombs(&mut self, count: usize) {
         self.bombs = count;
         let mut remaining_bombs = count;
@@ -44,7 +86,7 @@ impl Map {
         // Place bomb neighbors
         for y in 0..self.height {
             for x in 0..self.width {
-                let idx = y * self.width + x;
+                let idx = self.coord_to_index((x, y)).unwrap();
                 if matches!(self.map[idx], TileKind::Boom) {
                     continue;
                 }
@@ -57,37 +99,57 @@ impl Map {
     }
 
     fn bomb_count_at(&self, index: usize) -> u8 {
-        let around: Vec<(isize, isize)> = (-1isize..1)
-            .zip(-1isize..1)
-            .filter(|x| *x != (0, 0))
-            .collect();
-        dbg!(&around);
-        let (target_x, target_y) = (
-            (index % self.width) as isize,
-            index.rem(self.width) as isize,
-        );
+        let around = vec![
+            (-1, -1),
+            (-1, 0),
+            (-1, 1),
+            (0, -1),
+            (0, 1),
+            (1, -1),
+            (1, 0),
+            (1, 1),
+        ];
+        let (target_x, target_y) = self.index_to_coord(index).unwrap();
 
         let mut count = 0u8;
 
         for (offset_x, offset_y) in around {
-            let x = match target_x.checked_add(offset_x) {
+            let x = match (target_x as isize).checked_add(offset_x) {
                 None => continue,
-                Some(x) if x as usize > self.width => continue,
+                Some(x) if x as usize > self.width - 1 => continue,
                 Some(x) => x as usize,
             };
-            let y = match target_y.checked_add(offset_y) {
+            let y = match (target_y as isize).checked_add(offset_y) {
                 None => continue,
-                Some(y) if y as usize > self.height => continue,
+                Some(y) if y as usize > self.height - 1 => continue,
                 Some(y) => y as usize,
             };
 
-            if matches!(self.map[x * self.width + y], TileKind::Boom) {
-                count = count.checked_add(1).unwrap();
+            if matches!(self.at_coords((x, y)).unwrap(), TileKind::Boom) {
+                count = count.checked_add(1).expect("more than 8 bombs wtf");
             }
         }
 
         count
     }
+}
+
+#[test]
+fn test_index_to_coord() {
+    let map = Map::new(8, 8);
+    assert_eq!(map.index_to_coord(0), Some((0, 0)));
+    assert_eq!(map.index_to_coord(1), Some((0, 1)));
+    assert_eq!(map.index_to_coord(8), Some((1, 0)));
+    assert_eq!(map.index_to_coord(63), Some((7, 7)));
+}
+
+#[test]
+fn test_coord_to_index() {
+    let map = Map::new(8, 8);
+    assert_eq!(map.coord_to_index((0, 0)), Some(0));
+    assert_eq!(map.coord_to_index((0, 1)), Some(1));
+    assert_eq!(map.coord_to_index((1, 0)), Some(8));
+    assert_eq!(map.coord_to_index((7, 7)), Some(63));
 }
 
 #[test]
