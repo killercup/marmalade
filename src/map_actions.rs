@@ -84,6 +84,7 @@ pub fn set_map(
     if *stage != GameStage::NewGame {
         return;
     }
+    info!("Give me map!");
     if events.iter().next().is_none() {
         return;
     }

@@ -33,25 +33,26 @@ pub fn click_on_tile(
     stage: Res<GameStage>,
     mut set_map: EventWriter<SetMapEvent>,
     mut events: EventReader<PickingEvent>,
-    mut boom: EventWriter<BoomEvent>,
+    mut boom: EventWriter<BombTriggeredEvent>,
     mut clear: EventWriter<ClearTileEvent>,
 ) {
     for event in events.iter() {
         if let PickingEvent::Clicked(e) = event {
             if let Some((entity, tile, transform)) = tiles.iter().find(|(tile, ..)| e == tile) {
                 if *stage != GameStage::MapSet {
+                    info!("Clicked tile and tries to set map");
                     set_map.send(SetMapEvent);
-                    clear.send(ClearTileEvent {
-                        entity,
-                        tile: tile.clone(),
-                    });
+                    // clear.send(ClearTileEvent {
+                    //     entity,
+                    //     tile: tile.clone(),
+                    // });
                     return;
                 }
 
                 match tile.kind {
                     TileKind::Boom => {
                         info!("Boom in aisle {tile:?}");
-                        boom.send(BoomEvent {
+                        boom.send(BombTriggeredEvent {
                             entity,
                             source: transform.translation,
                         });
@@ -149,9 +150,30 @@ pub fn clear(
     }
 }
 
-pub fn go_nuclear(mut events: EventReader<BoomEvent>, mut commands: Commands) {
+pub fn go_nuclear_if_fast(
+    mut boom: EventWriter<BoomEvent>,
+    tiles: Query<(&Tile, &Velocity, Entity, &Transform)>,
+) {
+    let blowThreshold = 1.0;
+    let bombs = tiles
+        .iter()
+        .filter(|(tile, ..)| tile.kind == TileKind::Boom);
+    let fast_bombs =
+        bombs.filter(|(_, velocity, ..)| velocity.linear.distance(Vec3::ZERO) > blowThreshold);
+    for (_, _, entity, source) in fast_bombs {
+        boom.send(BoomEvent {
+            entity,
+            source: source.translation,
+        });
+    }
+}
+
+pub fn click_on_bomb(
+    mut events: EventReader<BombTriggeredEvent>,
+    mut boom: EventWriter<BoomEvent>,
+) {
     let mut events = events.iter();
-    let BoomEvent { entity, source } = if let Some(x) = events.next() {
+    let BombTriggeredEvent { entity, source } = if let Some(x) = events.next() {
         x
     } else {
         return;
@@ -161,33 +183,53 @@ pub fn go_nuclear(mut events: EventReader<BoomEvent>, mut commands: Commands) {
         warn!("gonna ignore {remaining} events");
     }
 
+    boom.send(BoomEvent {
+        entity: *entity,
+        source: *source,
+    });
+}
+
+pub fn go_nuclear(mut events: EventReader<BoomEvent>, mut commands: Commands) {
     crate::stages::endgame(&mut commands);
-    commands.entity(*entity).despawn();
+    // let mut events = events.iter();
+    // let BoomEvent { entity, source } = if let Some(x) = events.next() {
+    //     x
+    // } else {
+    //     return;
+    // };
+    // let remaining = events.count();
+    // if remaining > 0 {
+    //     warn!("gonna ignore {remaining} events");
+    // }
 
+    //crate::stages::endgame(&mut commands);
     let mut rng = thread_rng();
+    for BoomEvent { entity, source } in events.iter() {
+        commands.entity(*entity).despawn();
 
-    for i in 0..200 {
-        let direction = Vec3::new(
-            (rng.gen_range::<i32, _>(0..2000) - 1000) as f32,
-            (rng.gen_range::<i32, _>(0..2000) - 1000) as f32,
-            0.0,
-        );
-        commands
-            .spawn_bundle(PbrBundle {
-                transform: Transform::from_translation(*source),
-                ..Default::default()
-            })
-            .insert(RigidBody::Dynamic)
-            .insert(CollisionShape::Sphere { radius: 10. })
-            .insert(PhysicMaterial {
-                friction: 0.1,
-                density: 1000.0,
-                restitution: 0.9,
-            })
-            .insert(Velocity::from_linear(*source + direction))
-            .insert(RotationConstraints::lock())
-            .insert(Shrapnel)
-            .insert(Name::new(format!("Boom {i}")));
+        for i in 0..200 {
+            let direction = Vec3::new(
+                (rng.gen_range::<i32, _>(0..2000) - 1000) as f32,
+                (rng.gen_range::<i32, _>(0..2000) - 1000) as f32,
+                0.0,
+            );
+            commands
+                .spawn_bundle(PbrBundle {
+                    transform: Transform::from_translation(*source),
+                    ..Default::default()
+                })
+                .insert(RigidBody::Dynamic)
+                .insert(CollisionShape::Sphere { radius: 10. })
+                .insert(PhysicMaterial {
+                    friction: 0.1,
+                    density: 1000.0,
+                    restitution: 0.9,
+                })
+                .insert(Velocity::from_linear(*source + direction))
+                .insert(RotationConstraints::lock())
+                .insert(Shrapnel)
+                .insert(Name::new(format!("Boom {i}")));
+        }
     }
 }
 

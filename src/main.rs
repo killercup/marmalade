@@ -57,11 +57,13 @@ fn main() {
             .with_system(map_actions::trigger_set_map)
             .with_system(stages::trigger_endgame)
             .with_system(params::hint)
+            .with_system(minesweeper::click_on_bomb)
             .with_system(stages::trigger_reset),
     );
     app.add_system_set(
         SystemSet::new()
             .label(SystemSets::Map)
+            .after(SystemSets::GameplayControls)
             .with_system(map_actions::set_map),
     );
     app.add_system_set(
