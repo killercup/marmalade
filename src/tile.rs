@@ -55,8 +55,8 @@ pub fn input(
     totaloffset = totaloffset * move_speed * frame_time.delta_seconds();
 
     for (mut transform,) in query.iter_mut() {
-        let distance_from_mouse_pointer = Vec3::distance(Vec3::ZERO, transform.translation);
-        let inverted = window.width() - distance_from_mouse_pointer;
+        let distance_from_center = Vec3::distance(Vec3::ZERO, transform.translation);
+        let inverted = window.width() - distance_from_center;
         transform.translation += totaloffset * inverted;
     }
 }
