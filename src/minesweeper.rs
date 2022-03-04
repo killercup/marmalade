@@ -38,7 +38,10 @@ pub fn click_on_tile(
                         });
                         return;
                     }
-                    TileKind::Danger(_) => warn!("danger not implemented!"),
+                    TileKind::Danger(_) => clear.send(ClearTileEvent {
+                        entity,
+                        tile: tile.clone(),
+                    }),
                     TileKind::Fine => {
                         clear.send(ClearTileEvent {
                             entity,
