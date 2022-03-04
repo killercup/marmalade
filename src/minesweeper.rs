@@ -5,6 +5,7 @@ use rand::{thread_rng, Rng};
 
 use crate::{
     map_generator::Map,
+    stages::GameStage,
     tile::{Tile, TileKind},
 };
 
@@ -21,11 +22,16 @@ pub struct ClearTileEvent {
 }
 
 pub fn click_on_tile(
-    mut events: EventReader<PickingEvent>,
     tiles: Query<(Entity, &Tile, &Transform)>,
+    stage: Res<GameStage>,
+    mut events: EventReader<PickingEvent>,
     mut boom: EventWriter<BoomEvent>,
     mut clear: EventWriter<ClearTileEvent>,
 ) {
+    if *stage != GameStage::MapSet {
+        return;
+    }
+
     for event in events.iter() {
         if let PickingEvent::Clicked(e) = event {
             if let Some((entity, tile, transform)) = tiles.iter().find(|(tile, ..)| e == tile) {
@@ -56,10 +62,15 @@ pub fn click_on_tile(
 
 pub fn clear(
     map: Res<Map>,
+    stage: Res<GameStage>,
     mut events: EventReader<ClearTileEvent>,
     mut commands: Commands,
     tiles: Query<(&Tile, Entity)>,
 ) {
+    if *stage != GameStage::MapSet {
+        return;
+    }
+
     let mut events = events.iter();
     let ClearTileEvent { entity, tile } = if let Some(x) = events.next() {
         x
