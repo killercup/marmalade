@@ -11,6 +11,7 @@ use bevy_inspector_egui::WorldInspectorPlugin;
 
 mod tile;
 use tile::Tile;
+mod killscreen;
 mod map_actions;
 mod map_generator;
 mod minesweeper;
@@ -76,6 +77,7 @@ fn main() {
             .after(SystemSets::Movements)
             .after(SystemSets::Map)
             .with_system(minesweeper::clear)
+            .with_system(killscreen::draw)
             .with_system(minesweeper::go_nuclear_if_fast)
             .with_system(minesweeper::go_nuclear),
     );
@@ -83,6 +85,7 @@ fn main() {
     app.add_event::<map_actions::SetMapEvent>();
     app.add_event::<minesweeper::BoomEvent>();
     app.add_event::<minesweeper::ClearTileEvent>();
+    app.add_event::<killscreen::GameOverEvent>();
 
     app.register_type::<Tile>();
     app.run();

@@ -4,6 +4,7 @@ use heron::prelude::*;
 use rand::{thread_rng, Rng};
 
 use crate::{
+    killscreen::GameOverEvent,
     map_actions::SetMapEvent,
     map_generator::Map,
     params::Params,
@@ -29,6 +30,7 @@ pub fn click_on_tile(
     mut set_map: EventWriter<SetMapEvent>,
     mut events: EventReader<PickingEvent>,
     mut boom: EventWriter<BoomEvent>,
+    mut game_over: EventWriter<GameOverEvent>,
     mut clear: EventWriter<ClearTileEvent>,
     mut commands: Commands,
 ) {
@@ -53,6 +55,7 @@ pub fn click_on_tile(
                             source: transform.translation,
                         });
                         commands.entity(entity).despawn();
+                        game_over.send(GameOverEvent);
                         return;
                     }
                     TileKind::Danger(_) => clear.send(ClearTileEvent {
