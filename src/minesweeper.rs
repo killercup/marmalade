@@ -5,31 +5,54 @@ use rand::{thread_rng, Rng};
 
 use crate::tile::{Tile, TileKind};
 
+#[derive(Debug)]
+pub struct BoomEvent {
+    pub entity: Entity,
+    pub source: Vec3,
+}
+
+#[derive(Debug)]
+pub struct ClearTileEvent {
+    pub tile: Tile,
+}
+
 pub fn click_on_tile(
     mut events: EventReader<PickingEvent>,
     tiles: Query<(Entity, &Tile, &Transform)>,
-    mut commands: Commands,
+    mut boom: EventWriter<BoomEvent>,
+    mut clear: EventWriter<ClearTileEvent>,
 ) {
-    let mut boom = None;
     for event in events.iter() {
         if let PickingEvent::Clicked(e) = event {
-            if let Some((e, tile, transform)) = tiles.iter().find(|(tile, ..)| e == tile) {
-                if matches!(tile.kind, TileKind::Boom) {
-                    info!("Boom in aile {tile:?}");
-                    boom = Some(transform);
-                    commands.entity(e).despawn();
+            if let Some((entity, tile, transform)) = tiles.iter().find(|(tile, ..)| e == tile) {
+                match tile.kind {
+                    TileKind::Boom => {
+                        info!("Boom in aisle {tile:?}");
+                        boom.send(BoomEvent {
+                            entity,
+                            source: transform.translation,
+                        });
+                        return;
+                    }
+                    TileKind::Danger(_) => todo!(),
+                    TileKind::Fine => {
+                        clear.send(ClearTileEvent { tile: tile.clone() });
+                    }
                 }
             }
         }
     }
-
-    if let Some(boom) = boom {
-        crate::stages::endgame(&mut commands);
-        go_nuclear_from(boom, &mut commands);
-    }
 }
 
-fn go_nuclear_from(source: &Transform, commands: &mut Commands) {
+pub fn go_nuclear(mut boom: EventReader<BoomEvent>, mut commands: Commands) {
+    let BoomEvent { entity, source } = if let Some(x) = boom.iter().next() {
+        x
+    } else {
+        return;
+    };
+    crate::stages::endgame(&mut commands);
+    commands.entity(*entity).despawn();
+
     let mut rng = thread_rng();
 
     for i in 0..200 {
@@ -40,7 +63,7 @@ fn go_nuclear_from(source: &Transform, commands: &mut Commands) {
         );
         commands
             .spawn_bundle(PbrBundle {
-                transform: Transform::from_translation(source.translation),
+                transform: Transform::from_translation(*source),
                 ..Default::default()
             })
             .insert(RigidBody::Dynamic)
@@ -50,7 +73,7 @@ fn go_nuclear_from(source: &Transform, commands: &mut Commands) {
                 density: 1000.0,
                 restitution: 0.9,
             })
-            .insert(Velocity::from_linear(source.translation + direction))
+            .insert(Velocity::from_linear(*source + direction))
             .insert(RotationConstraints::lock())
             .insert(Shrapnel)
             .insert(Name::new(format!("Boom {i}")));

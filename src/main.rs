@@ -64,10 +64,19 @@ fn main() {
         SystemSet::new()
             .label("movements")
             .with_run_criteria(FixedTimestep::step(1. / 60.))
-            .with_system(tile::input)
+            // .with_system(tile::input)
             .with_system(tile::mouse_input)
             .with_system(tile::go_home),
     );
+    app.add_system_set(
+        SystemSet::new()
+            .label("reactions")
+            .with_system(minesweeper::go_nuclear),
+    );
+
+    app.add_event::<minesweeper::BoomEvent>();
+    app.add_event::<minesweeper::ClearTileEvent>();
+
     app.register_type::<Tile>();
     app.run();
 }

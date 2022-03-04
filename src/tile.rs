@@ -3,7 +3,7 @@ use heron::Velocity;
 
 use crate::params::ForceParams;
 
-#[derive(Component, Reflect, Default, Debug)]
+#[derive(Component, Reflect, Default, Debug, Clone)]
 #[reflect(Component)]
 pub struct Tile {
     pub original_position: Vec3,
