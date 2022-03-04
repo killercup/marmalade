@@ -1,4 +1,7 @@
-pub struct ForceParams {
+use bevy::prelude::*;
+
+pub struct Params {
+    pub hint: bool,
     pub go_home_factor: f32,
     go_home_influence: (f32, f32),
     pub keyboard_move_speed: f32,
@@ -6,9 +9,10 @@ pub struct ForceParams {
     pub mouse_influence: (f32, f32),
 }
 
-impl ForceParams {
+impl Params {
     pub fn regular() -> Self {
         Self {
+            hint: false,
             go_home_factor: 150.,
             go_home_influence: (0., 100.),
             keyboard_move_speed: 0.5,
@@ -19,6 +23,7 @@ impl ForceParams {
 
     pub fn chaos() -> Self {
         Self {
+            hint: false,
             go_home_factor: 30.,
             go_home_influence: (100., 600.),
             keyboard_move_speed: 0.5,
@@ -38,4 +43,11 @@ impl ForceParams {
             distance_from_mouse_pointer,
         )
     }
+}
+
+pub fn hint(keys: Res<Input<KeyCode>>, mut params: ResMut<Params>) {
+    if !keys.just_pressed(KeyCode::H) {
+        return;
+    }
+    params.hint = !params.hint;
 }

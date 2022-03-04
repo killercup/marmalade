@@ -4,10 +4,10 @@ use heron::prelude::*;
 
 use crate::{
     map_generator::Map,
-    params::ForceParams,
+    params::Params,
     stages::GameStage,
     tile::{Tile, TileKind},
-    BLOCK_OFFSET, BLOCK_SIZE, MAP_COLUMNS, MAP_ROWS,
+    BLOCK_OFFSET, BLOCK_SIZE, BOMB_COUNT, MAP_COLUMNS, MAP_ROWS,
 };
 
 pub fn create_map(
@@ -21,7 +21,7 @@ pub fn create_map(
         ..Default::default()
     });
     commands.insert_resource(GameStage::NewGame);
-    commands.insert_resource(ForceParams::regular());
+    commands.insert_resource(Params::regular());
 
     let map = Map::new(MAP_ROWS, MAP_COLUMNS);
     let blox = (MAP_ROWS * MAP_COLUMNS) as f32;
@@ -79,8 +79,7 @@ pub fn set_map(
     mut events: EventReader<SetMapEvent>,
     mut stage: ResMut<GameStage>,
     mut map: ResMut<Map>,
-    mut materials: ResMut<Assets<StandardMaterial>>,
-    mut query: Query<(&mut Tile, &mut Handle<StandardMaterial>)>,
+    mut query: Query<(&mut Tile, &mut PhysicMaterial)>,
 ) {
     if *stage != GameStage::NewGame {
         return;
@@ -89,8 +88,38 @@ pub fn set_map(
         return;
     }
 
-    map.set_bombs(50);
+    map.set_bombs(BOMB_COUNT);
 
+    for (mut tile, mut physics) in query.iter_mut() {
+        tile.kind = map.map[tile.index_in_map];
+        match tile.kind {
+            TileKind::Boom => {
+                physics.density = 50.;
+                physics.restitution = 0.2;
+            }
+            TileKind::Danger(_) => {
+                physics.density = 2.;
+            }
+            TileKind::Fine => {
+                physics.density = 1.;
+                // same old green
+            }
+        }
+    }
+
+    *stage = GameStage::MapSet;
+    info!("Game set");
+}
+
+pub fn draw_hints(
+    params: Res<Params>,
+    mut materials: ResMut<Assets<StandardMaterial>>,
+    mut query: Query<(&Tile, &mut Handle<StandardMaterial>)>,
+) {
+    let green_tile = materials.add(StandardMaterial {
+        base_color: Color::hsl(125., 0.5, 0.5),
+        ..Default::default()
+    });
     let red_tile = materials.add(StandardMaterial {
         base_color: Color::hsl(15., 0.5, 0.5),
         ..Default::default()
@@ -100,21 +129,26 @@ pub fn set_map(
         ..Default::default()
     });
 
-    for (mut tile, mut material) in query.iter_mut() {
-        tile.kind = map.map[tile.index_in_map];
+    for (tile, mut material) in query.iter_mut() {
+        if !params.hint {
+            *material = green_tile.clone();
+            continue;
+        }
+
         match tile.kind {
             TileKind::Boom => {
-                *material = red_tile.clone();
+                if params.hint {
+                    *material = red_tile.clone();
+                }
             }
             TileKind::Danger(_) => {
-                *material = orange_tile.clone();
+                if params.hint {
+                    *material = orange_tile.clone();
+                }
             }
             TileKind::Fine => {
                 // same old green
             }
         }
     }
-
-    *stage = GameStage::MapSet;
-    info!("Game set");
 }

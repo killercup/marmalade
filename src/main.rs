@@ -21,6 +21,7 @@ const BLOCK_SIZE: f32 = 20.;
 const BLOCK_OFFSET: f32 = 35.;
 const MAP_ROWS: usize = 24;
 const MAP_COLUMNS: usize = 24;
+const BOMB_COUNT: usize = 64;
 
 fn main() {
     color_eyre::install().unwrap();
@@ -55,6 +56,7 @@ fn main() {
             .with_system(minesweeper::click_on_tile)
             .with_system(map_actions::trigger_set_map)
             .with_system(stages::trigger_endgame)
+            .with_system(params::hint)
             .with_system(stages::trigger_reset),
     );
     app.add_system_set(
@@ -75,6 +77,7 @@ fn main() {
             .label(SystemSets::Reactions)
             .after(SystemSets::Movements)
             .after(SystemSets::Map)
+            .with_system(map_actions::draw_hints)
             .with_system(minesweeper::clear)
             .with_system(minesweeper::go_nuclear),
     );

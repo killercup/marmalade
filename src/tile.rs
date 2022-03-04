@@ -1,7 +1,7 @@
 use bevy::{input::mouse::MouseMotion, prelude::*};
 use heron::Velocity;
 
-use crate::params::ForceParams;
+use crate::params::Params;
 
 #[derive(Component, Reflect, Default, Debug, Clone)]
 #[reflect(Component)]
@@ -32,7 +32,7 @@ pub fn input(
     windows: Res<Windows>,
     frame_time: Res<Time>,
     keys: Res<Input<KeyCode>>,
-    params: Res<ForceParams>,
+    params: Res<Params>,
     mut query: Query<(&mut Transform,), With<Tile>>,
 ) {
     let window = windows.get_primary().unwrap();
@@ -64,7 +64,7 @@ pub fn input(
 pub fn mouse_input(
     windows: Res<Windows>,
     frame_time: Res<Time>,
-    params: Res<ForceParams>,
+    params: Res<Params>,
     mut motion: EventReader<MouseMotion>,
     mut query: Query<(&mut Velocity, &Transform), With<Tile>>,
 ) {
@@ -95,7 +95,7 @@ pub fn mouse_input(
     }
 }
 
-pub fn go_home(params: Res<ForceParams>, mut query: Query<(&mut Velocity, &Transform, &Tile)>) {
+pub fn go_home(params: Res<Params>, mut query: Query<(&mut Velocity, &Transform, &Tile)>) {
     for (mut velocity, transform, thingy) in query.iter_mut() {
         let distance = thingy.original_position.distance(transform.translation);
         if distance < 0.001 {
