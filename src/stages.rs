@@ -26,6 +26,7 @@ pub fn endgame(commands: &mut Commands) {
 }
 
 pub fn trigger_reset(
+    asset_server: Res<AssetServer>,
     keys: Res<Input<KeyCode>>,
     mut commands: Commands,
     meshes: ResMut<Assets<Mesh>>,
@@ -40,5 +41,5 @@ pub fn trigger_reset(
         commands.entity(entity).despawn();
     }
 
-    create_map(commands, meshes, materials);
+    create_map(asset_server, commands, meshes, materials);
 }
