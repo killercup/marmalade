@@ -111,11 +111,17 @@ pub fn set_map(
     info!("Game set");
 }
 
-pub fn draw_hints(
-    params: Res<Params>,
+pub fn toggle_hint(
+    keys: Res<Input<KeyCode>>,
+    mut params: ResMut<Params>,
     mut materials: ResMut<Assets<StandardMaterial>>,
     mut query: Query<(&Tile, &mut Handle<StandardMaterial>)>,
 ) {
+    if !keys.just_pressed(KeyCode::H) {
+        return;
+    }
+    params.hint = !params.hint;
+
     let green_tile = materials.add(StandardMaterial {
         base_color: Color::hsl(125., 0.5, 0.5),
         ..Default::default()

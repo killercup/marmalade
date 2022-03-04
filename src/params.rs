@@ -44,10 +44,3 @@ impl Params {
         )
     }
 }
-
-pub fn toggle_hint(keys: Res<Input<KeyCode>>, mut params: ResMut<Params>) {
-    if !keys.just_pressed(KeyCode::H) {
-        return;
-    }
-    params.hint = !params.hint;
-}

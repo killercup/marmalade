@@ -56,8 +56,8 @@ fn main() {
             .with_system(minesweeper::click_on_tile)
             .with_system(map_actions::trigger_set_map)
             .with_system(stages::trigger_endgame)
-            .with_system(params::toggle_hint)
-            .with_system(stages::trigger_reset),
+            .with_system(stages::trigger_reset)
+            .with_system(map_actions::toggle_hint),
     );
     app.add_system_set(
         SystemSet::new()
@@ -76,7 +76,6 @@ fn main() {
             .label(SystemSets::Reactions)
             .after(SystemSets::Movements)
             .after(SystemSets::Map)
-            // .with_system(map_actions::draw_hints)
             .with_system(minesweeper::clear)
             .with_system(minesweeper::go_nuclear_if_fast)
             .with_system(minesweeper::go_nuclear),
