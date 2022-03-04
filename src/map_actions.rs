@@ -94,7 +94,7 @@ pub fn set_map(
         tile.kind = map.map[tile.index_in_map];
         match tile.kind {
             TileKind::Boom => {
-                physics.density = 50.;
+                physics.density = 5.;
                 physics.restitution = 0.2;
             }
             TileKind::Danger(_) => {
