@@ -1,4 +1,4 @@
-use bevy::{core::FixedTimestep, input::mouse::MouseWheel, prelude::*};
+use bevy::{input::mouse::MouseWheel, prelude::*};
 use bevy_mod_picking::*;
 use heron::prelude::*;
 
@@ -67,7 +67,6 @@ fn main() {
     app.add_system_set(
         SystemSet::new()
             .label(SystemSets::Movements)
-            // .with_system(tile::input)
             .with_system(tile::mouse_input)
             .with_system(tile::go_home),
     );

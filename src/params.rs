@@ -1,5 +1,3 @@
-use bevy::prelude::*;
-
 pub struct Params {
     pub hint: bool,
     pub go_home_factor: f32,

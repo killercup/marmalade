@@ -148,7 +148,7 @@ pub fn clear(
 
 pub fn go_nuclear(mut events: EventReader<BoomEvent>, mut commands: Commands) {
     let mut rng = thread_rng();
-    for BoomEvent { entity, source } in events.iter() {
+    for BoomEvent { entity: _, source } in events.iter() {
         for i in 0..20 {
             let direction = Vec3::new(
                 (rng.gen_range::<i32, _>(0..2000) - 1000) as f32,
