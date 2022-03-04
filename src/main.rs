@@ -56,7 +56,7 @@ fn main() {
             .with_system(minesweeper::click_on_tile)
             .with_system(map_actions::trigger_set_map)
             .with_system(stages::trigger_endgame)
-            .with_system(params::hint)
+            .with_system(params::toggle_hint)
             .with_system(stages::trigger_reset),
     );
     app.add_system_set(
@@ -67,7 +67,6 @@ fn main() {
     app.add_system_set(
         SystemSet::new()
             .label(SystemSets::Movements)
-            .with_run_criteria(FixedTimestep::step(1. / 60.))
             // .with_system(tile::input)
             .with_system(tile::mouse_input)
             .with_system(tile::go_home),
@@ -77,14 +76,14 @@ fn main() {
             .label(SystemSets::Reactions)
             .after(SystemSets::Movements)
             .after(SystemSets::Map)
-            .with_system(map_actions::draw_hints)
+            // .with_system(map_actions::draw_hints)
             .with_system(minesweeper::clear)
+            .with_system(minesweeper::go_nuclear_if_fast)
             .with_system(minesweeper::go_nuclear),
     );
 
     app.add_event::<map_actions::SetMapEvent>();
     app.add_event::<minesweeper::BoomEvent>();
-    app.add_event::<minesweeper::BombTriggeredEvent>();
     app.add_event::<minesweeper::ClearTileEvent>();
 
     app.register_type::<Tile>();

@@ -17,12 +17,6 @@ pub struct BoomEvent {
 }
 
 #[derive(Debug)]
-pub struct BombTriggeredEvent {
-    pub entity: Entity,
-    pub source: Vec3,
-}
-
-#[derive(Debug)]
 pub struct ClearTileEvent {
     pub entity: Entity,
     pub tile: Tile,
@@ -35,6 +29,7 @@ pub fn click_on_tile(
     mut events: EventReader<PickingEvent>,
     mut boom: EventWriter<BoomEvent>,
     mut clear: EventWriter<ClearTileEvent>,
+    mut commands: Commands,
 ) {
     for event in events.iter() {
         if let PickingEvent::Clicked(e) = event {
@@ -51,10 +46,12 @@ pub fn click_on_tile(
                 match tile.kind {
                     TileKind::Boom => {
                         info!("Boom in aisle {tile:?}");
+                        crate::stages::endgame(&mut commands);
                         boom.send(BoomEvent {
                             entity,
                             source: transform.translation,
                         });
+                        commands.entity(entity).despawn();
                         return;
                     }
                     TileKind::Danger(_) => clear.send(ClearTileEvent {
@@ -150,44 +147,51 @@ pub fn clear(
 }
 
 pub fn go_nuclear(mut events: EventReader<BoomEvent>, mut commands: Commands) {
-    let mut events = events.iter();
-    let BoomEvent { entity, source } = if let Some(x) = events.next() {
-        x
-    } else {
-        return;
-    };
-    let remaining = events.count();
-    if remaining > 0 {
-        warn!("gonna ignore {remaining} events");
-    }
-
-    crate::stages::endgame(&mut commands);
-    commands.entity(*entity).despawn();
-
     let mut rng = thread_rng();
+    for BoomEvent { entity, source } in events.iter() {
+        for i in 0..20 {
+            let direction = Vec3::new(
+                (rng.gen_range::<i32, _>(0..2000) - 1000) as f32,
+                (rng.gen_range::<i32, _>(0..2000) - 1000) as f32,
+                0.0,
+            );
+            commands
+                .spawn_bundle(PbrBundle {
+                    transform: Transform::from_translation(*source),
+                    ..Default::default()
+                })
+                .insert(RigidBody::Dynamic)
+                .insert(CollisionShape::Sphere { radius: 10. })
+                .insert(PhysicMaterial {
+                    friction: 0.1,
+                    density: 1000.0,
+                    restitution: 0.9,
+                })
+                .insert(Velocity::from_linear(*source + direction))
+                .insert(RotationConstraints::lock())
+                .insert(Shrapnel)
+                .insert(Name::new(format!("Boom {i}")));
+        }
+    }
+}
 
-    for i in 0..200 {
-        let direction = Vec3::new(
-            (rng.gen_range::<i32, _>(0..2000) - 1000) as f32,
-            (rng.gen_range::<i32, _>(0..2000) - 1000) as f32,
-            0.0,
-        );
-        commands
-            .spawn_bundle(PbrBundle {
-                transform: Transform::from_translation(*source),
-                ..Default::default()
-            })
-            .insert(RigidBody::Dynamic)
-            .insert(CollisionShape::Sphere { radius: 10. })
-            .insert(PhysicMaterial {
-                friction: 0.1,
-                density: 1000.0,
-                restitution: 0.9,
-            })
-            .insert(Velocity::from_linear(*source + direction))
-            .insert(RotationConstraints::lock())
-            .insert(Shrapnel)
-            .insert(Name::new(format!("Boom {i}")));
+pub fn go_nuclear_if_fast(
+    tiles: Query<(&Tile, &Velocity, Entity, &Transform)>,
+    mut boom: EventWriter<BoomEvent>,
+    mut commands: Commands,
+) {
+    let blow_threshold = 200.0;
+    let bombs = tiles
+        .iter()
+        .filter(|(tile, ..)| tile.kind == TileKind::Boom);
+    let fast_bombs =
+        bombs.filter(|(_, velocity, ..)| velocity.linear.distance(Vec3::ZERO) > blow_threshold);
+    for (_, _, entity, source) in fast_bombs {
+        boom.send(BoomEvent {
+            entity,
+            source: source.translation,
+        });
+        commands.entity(entity).despawn();
     }
 }
 
