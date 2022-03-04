@@ -28,9 +28,12 @@ impl Default for TileKind {
 
 pub fn input(
     keys: Res<Input<KeyCode>>,
+    windows: Res<Windows>,
     mut query: Query<(&mut Transform,), With<Tile>>,
     frame_time: Res<Time>,
 ) {
+    let window = windows.get_primary().unwrap();
+
     let mut totaloffset = Vec3::ZERO;
     let move_speed = 0.5;
 
@@ -50,7 +53,7 @@ pub fn input(
 
     for (mut transform,) in query.iter_mut() {
         let distance_from_mouse_pointer = Vec3::distance(Vec3::ZERO, transform.translation);
-        let inverted = 1080f32 - distance_from_mouse_pointer;
+        let inverted = window.width() - distance_from_mouse_pointer;
         transform.translation += totaloffset * inverted;
     }
 }
