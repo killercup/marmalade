@@ -1,4 +1,5 @@
 use bevy::{core::FixedTimestep, input::mouse::MouseWheel, prelude::*};
+use bevy_mod_picking::*;
 use heron::prelude::*;
 
 #[cfg(feature = "editor")]
@@ -26,6 +27,7 @@ fn main() {
     let mut app = App::new();
     app.add_plugins(DefaultPlugins);
     app.add_plugin(PhysicsPlugin::default());
+    app.add_plugins(DefaultPickingPlugins);
     app.insert_resource(Gravity::from(Vec2::ZERO));
 
     #[cfg(feature = "dev")]
@@ -80,6 +82,7 @@ fn setup(mut commands: Commands) {
             },
             ..Default::default()
         })
+        .insert_bundle(PickingCameraBundle::default())
         .insert(MainCamera);
     commands.insert_resource(AmbientLight {
         color: Color::ANTIQUE_WHITE,
@@ -148,6 +151,7 @@ fn create_map(
                 kind: *kind,
                 index_in_map: x,
             })
+            .insert_bundle(PickableBundle::default())
             .insert(Name::new(format!("My block {x}")));
     }
 

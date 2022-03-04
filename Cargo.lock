@@ -612,6 +612,16 @@ dependencies = [
 ]
 
 [[package]]
+name = "bevy_mod_picking"
+version = "0.5.4"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "d538440f35e4fa313f4c898cc93d7bc64b221c1ee68d3e061ef1476eec496f97"
+dependencies = [
+ "bevy",
+ "bevy_mod_raycast",
+]
+
+[[package]]
 name = "bevy_mod_raycast"
 version = "0.3.9"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -2399,6 +2409,7 @@ dependencies = [
  "bevy",
  "bevy-inspector-egui",
  "bevy_editor_pls",
+ "bevy_mod_picking",
  "bevy_tweening",
  "color-eyre",
  "heron",
