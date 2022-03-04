@@ -1,6 +1,6 @@
 use bevy::prelude::*;
 
-use crate::{map_actions::create_map, params::ForceParams, tile::Tile};
+use crate::{map_actions::create_map, minesweeper::Shrapnel, params::ForceParams, tile::Tile};
 
 #[derive(Debug, Clone, Copy)]
 pub enum Stage {
@@ -27,7 +27,7 @@ pub fn trigger_reset(
     mut commands: Commands,
     meshes: ResMut<Assets<Mesh>>,
     materials: ResMut<Assets<StandardMaterial>>,
-    query: Query<(Entity,), With<Tile>>,
+    query: Query<(Entity,), Or<(With<Tile>, With<Shrapnel>)>>,
 ) {
     if !keys.just_pressed(KeyCode::R) {
         return;

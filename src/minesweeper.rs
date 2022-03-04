@@ -32,7 +32,7 @@ pub fn click_on_tile(
 fn go_nuclear_from(source: &Transform, commands: &mut Commands) {
     let mut rng = thread_rng();
 
-    for _ in 0..200 {
+    for i in 0..200 {
         let direction = Vec3::new(
             (rng.gen_range::<i32, _>(0..2000) - 1000) as f32,
             (rng.gen_range::<i32, _>(0..2000) - 1000) as f32,
@@ -52,6 +52,10 @@ fn go_nuclear_from(source: &Transform, commands: &mut Commands) {
             })
             .insert(Velocity::from_linear(source.translation + direction))
             .insert(RotationConstraints::lock())
-            .insert(Name::new("Boom"));
+            .insert(Shrapnel)
+            .insert(Name::new(format!("Boom {i}")));
     }
 }
+
+#[derive(Component, Debug)]
+pub struct Shrapnel;
