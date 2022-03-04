@@ -132,6 +132,7 @@ fn create_map(
                 friction: 0.2,
                 density: 1.,
             })
+            .insert(Damping::from_linear(0.5).with_angular(0.2))
             .insert(Tile {
                 original_position,
                 kind: *kind,
