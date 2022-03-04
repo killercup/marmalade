@@ -17,6 +17,12 @@ pub struct BoomEvent {
 }
 
 #[derive(Debug)]
+pub struct BombTriggeredEvent {
+    pub entity: Entity,
+    pub source: Vec3,
+}
+
+#[derive(Debug)]
 pub struct ClearTileEvent {
     pub entity: Entity,
     pub tile: Tile,

@@ -82,10 +82,10 @@ fn main() {
             .with_system(minesweeper::go_nuclear),
     );
 
-    app.add_event::<minesweeper::BoomEvent>();
-    app.add_event::<minesweeper::ClearTileEvent>();
-    app.add_event::<minesweeper::ClearTileEvent>();
     app.add_event::<map_actions::SetMapEvent>();
+    app.add_event::<minesweeper::BoomEvent>();
+    app.add_event::<minesweeper::BombTriggeredEvent>();
+    app.add_event::<minesweeper::ClearTileEvent>();
 
     app.register_type::<Tile>();
     app.run();
