@@ -14,10 +14,14 @@ pub fn create_map(
     mut commands: Commands,
     mut meshes: ResMut<Assets<Mesh>>,
     mut materials: ResMut<Assets<StandardMaterial>>,
+    asset_server: Res<AssetServer>,
 ) {
+    let albedo = asset_server.load("graphics/TileAlbedo.png");
+
     let mesh = meshes.add(Mesh::from(shape::Cube { size: BLOCK_SIZE }));
     let green_tile = materials.add(StandardMaterial {
         base_color: Color::hsl(125., 0.5, 0.5),
+        base_color_texture: Some(albedo.clone()),
         ..Default::default()
     });
     commands.insert_resource(GameStage::NewGame);
@@ -116,22 +120,32 @@ pub fn toggle_hint(
     mut params: ResMut<Params>,
     mut materials: ResMut<Assets<StandardMaterial>>,
     mut query: Query<(&Tile, &mut Handle<StandardMaterial>)>,
+    asset_server: Res<AssetServer>,
 ) {
     if !keys.just_pressed(KeyCode::H) {
         return;
     }
     params.hint = !params.hint;
 
+    let albedo = asset_server.load("graphics/TileAlbedo.png");
+    let normal = asset_server.load("graphics/TileNormalMap.png");
     let green_tile = materials.add(StandardMaterial {
         base_color: Color::hsl(125., 0.5, 0.5),
+        base_color_texture: Some(albedo.clone()),
+        normal_map_texture: Some(normal.clone()), //not very effective
+        perceptual_roughness: 0.0,
         ..Default::default()
     });
     let red_tile = materials.add(StandardMaterial {
         base_color: Color::hsl(15., 0.5, 0.5),
+        base_color_texture: Some(albedo.clone()),
+        normal_map_texture: Some(normal.clone()), //not very effective
         ..Default::default()
     });
     let orange_tile = materials.add(StandardMaterial {
         base_color: Color::hsl(55., 0.5, 0.5),
+        base_color_texture: Some(albedo.clone()),
+        normal_map_texture: Some(normal.clone()), //not very effective
         ..Default::default()
     });
 

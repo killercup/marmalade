@@ -28,6 +28,7 @@ pub fn trigger_reset(
     meshes: ResMut<Assets<Mesh>>,
     materials: ResMut<Assets<StandardMaterial>>,
     query: Query<(Entity,), Or<(With<Tile>, With<Shrapnel>)>>,
+    asset_server: Res<AssetServer>,
 ) {
     if !keys.just_pressed(KeyCode::R) {
         return;
@@ -37,5 +38,5 @@ pub fn trigger_reset(
         commands.entity(entity).despawn();
     }
 
-    create_map(commands, meshes, materials);
+    create_map(commands, meshes, materials, asset_server);
 }
