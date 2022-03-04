@@ -10,7 +10,7 @@ use bevy_inspector_egui::WorldInspectorPlugin;
 
 mod tile;
 use map::Map;
-use tile::{Tile, TileKind};
+use tile::{ForceParams, Tile, TileKind};
 mod map;
 
 const BLOCK_SIZE: f32 = 20.;
@@ -102,6 +102,7 @@ fn create_map(
         ..Default::default()
     });
     commands.insert_resource(Stage::NewGame);
+    commands.insert_resource(ForceParams::regular());
 
     let map = Map::new(MAP_ROWS, MAP_COLUMNS);
     let blox = (MAP_ROWS * MAP_COLUMNS) as f32;

@@ -89,16 +89,38 @@ pub fn mouse_input(
     }
 }
 
-pub fn go_home(mut query: Query<(&mut Velocity, &Transform, &Tile)>) {
+pub fn go_home(params: Res<ForceParams>, mut query: Query<(&mut Velocity, &Transform, &Tile)>) {
     for (mut velocity, transform, thingy) in query.iter_mut() {
         let distance = thingy.original_position.distance(transform.translation);
         if distance < 0.001 {
             continue;
         }
 
-        let influence = nalgebra_glm::smoothstep(0., 10., distance.sqrt());
+        let influence = params.go_home_influence(distance);
         let direction = Vec3::normalize(thingy.original_position - transform.translation);
-        let force_mult = 150.;
+        let force_mult = params.go_home_factor;
         *velocity = velocity.with_linear(velocity.linear + direction * influence * force_mult);
+    }
+}
+
+pub struct ForceParams {
+    pub go_home_factor: f32,
+    go_home_influence: (f32, f32),
+}
+
+impl ForceParams {
+    pub fn go_home_influence(&self, distance: f32) -> f32 {
+        nalgebra_glm::smoothstep(
+            self.go_home_influence.0,
+            self.go_home_influence.1,
+            distance.sqrt(),
+        )
+    }
+
+    pub fn regular() -> Self {
+        Self {
+            go_home_factor: 150.,
+            go_home_influence: (0., 10.),
+        }
     }
 }
