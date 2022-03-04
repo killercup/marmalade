@@ -90,13 +90,14 @@ impl Map {
                 }
                 let num = self.bomb_count_at(idx);
                 if num > 0 {
-                    self.map[idx] = TileKind::Danger(num);
+                    self.map[idx] =
+                        TileKind::Danger(num.try_into().expect("more than 8 bombs around me? wow"));
                 }
             }
         }
     }
 
-    fn bomb_count_at(&self, index: usize) -> u8 {
+    pub fn neighbors(&self, index: usize) -> Vec<((usize, usize), usize, TileKind)> {
         let around = vec![
             (-1, -1),
             (-1, 0),
@@ -109,26 +110,37 @@ impl Map {
         ];
         let (target_x, target_y) = self.index_to_coord(index).unwrap();
 
-        let mut count = 0u8;
+        around
+            .into_iter()
+            .filter_map(|(offset_x, offset_y)| {
+                let x = match (target_x as isize).checked_add(offset_x) {
+                    None => return None,
+                    Some(x) if x as usize > self.width - 1 => return None,
+                    Some(x) => x as usize,
+                };
+                let y = match (target_y as isize).checked_add(offset_y) {
+                    None => return None,
+                    Some(y) if y as usize > self.height - 1 => return None,
+                    Some(y) => y as usize,
+                };
 
-        for (offset_x, offset_y) in around {
-            let x = match (target_x as isize).checked_add(offset_x) {
-                None => continue,
-                Some(x) if x as usize > self.width - 1 => continue,
-                Some(x) => x as usize,
-            };
-            let y = match (target_y as isize).checked_add(offset_y) {
-                None => continue,
-                Some(y) if y as usize > self.height - 1 => continue,
-                Some(y) => y as usize,
-            };
+                Some((x, y))
+            })
+            .map(|coords| {
+                (
+                    coords,
+                    self.coord_to_index(coords).unwrap(),
+                    self.at_coords(coords).unwrap(),
+                )
+            })
+            .collect()
+    }
 
-            if matches!(self.at_coords((x, y)).unwrap(), TileKind::Boom) {
-                count = count.checked_add(1).expect("more than 8 bombs wtf");
-            }
-        }
-
-        count
+    fn bomb_count_at(&self, index: usize) -> usize {
+        self.neighbors(index)
+            .iter()
+            .filter(|(_, _, tile)| matches!(tile, TileKind::Boom))
+            .count()
     }
 }
 
