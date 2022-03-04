@@ -271,11 +271,11 @@ pub fn click_on_tile(
 fn go_nuclear_from(source: &Transform, commands: &mut Commands) {
     let mut rng = thread_rng();
 
-    for _ in 0..20 {
+    for _ in 0..200 {
         let direction = Vec3::new(
-            rng.gen_range::<u32, _>(0..50) as f32,
-            rng.gen_range::<u32, _>(0..50) as f32,
-            rng.gen_range::<u32, _>(0..50) as f32,
+            (rng.gen_range::<i32, _>(0..2000) - 1000) as f32,
+            (rng.gen_range::<i32, _>(0..2000) - 1000) as f32,
+            0.0,
         );
         commands
             .spawn_bundle(PbrBundle {
@@ -283,8 +283,14 @@ fn go_nuclear_from(source: &Transform, commands: &mut Commands) {
                 ..Default::default()
             })
             .insert(RigidBody::Dynamic)
-            .insert(CollisionShape::Sphere { radius: 500. })
+            .insert(CollisionShape::Sphere { radius: 10. })
+            .insert(PhysicMaterial {
+                friction: 0.1,
+                density: 1000.0,
+                restitution: 0.9,
+            })
             .insert(Velocity::from_linear(source.translation + direction))
+            .insert(RotationConstraints::lock())
             .insert(Name::new("Boom"));
     }
 }
