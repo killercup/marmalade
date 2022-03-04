@@ -137,17 +137,13 @@ pub fn draw_hints(
 
         match tile.kind {
             TileKind::Boom => {
-                if params.hint {
-                    *material = red_tile.clone();
-                }
+                *material = red_tile.clone();
             }
             TileKind::Danger(_) => {
-                if params.hint {
-                    *material = orange_tile.clone();
-                }
+                *material = orange_tile.clone();
             }
             TileKind::Fine => {
-                // same old green
+                *material = green_tile.clone();
             }
         }
     }
