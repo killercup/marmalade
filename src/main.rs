@@ -1,6 +1,7 @@
 use bevy::{core::FixedTimestep, input::mouse::MouseWheel, prelude::*};
 use bevy_mod_picking::*;
 use heron::prelude::*;
+use rand::{thread_rng, Rng};
 
 #[cfg(feature = "editor")]
 use bevy::diagnostic::FrameTimeDiagnosticsPlugin;
@@ -26,9 +27,18 @@ fn main() {
 
     let mut app = App::new();
     app.add_plugins(DefaultPlugins);
+
     app.add_plugin(PhysicsPlugin::default());
-    app.add_plugins(DefaultPickingPlugins);
     app.insert_resource(Gravity::from(Vec2::ZERO));
+
+    app.add_plugins(DefaultPickingPlugins);
+    app.insert_resource(PickingPluginsState {
+        enable_picking: true,
+        enable_highlighting: true,
+        enable_interacting: true,
+        update_debug_cursor: false,
+        print_debug_events: false,
+    });
 
     #[cfg(feature = "dev")]
     app.add_plugin(WorldInspectorPlugin::new());
@@ -43,8 +53,9 @@ fn main() {
             .label("gameplay controls")
             .with_system(zoom)
             .with_system(set_map)
-            .with_system(endgame)
-            .with_system(reset),
+            .with_system(click_on_tile)
+            .with_system(trigger_endgame)
+            .with_system(trigger_reset),
     );
     app.add_system_set(
         SystemSet::new()
@@ -202,16 +213,20 @@ fn set_map(
     info!("Game set");
 }
 
-fn endgame(keys: Res<Input<KeyCode>>, mut commands: Commands) {
+fn trigger_endgame(keys: Res<Input<KeyCode>>, mut commands: Commands) {
     if !keys.just_pressed(KeyCode::Q) {
         return;
     }
 
+    endgame(&mut commands);
+}
+
+fn endgame(commands: &mut Commands) {
     commands.insert_resource(Stage::KillScreen);
     commands.insert_resource(ForceParams::chaos());
 }
 
-fn reset(
+fn trigger_reset(
     keys: Res<Input<KeyCode>>,
     mut commands: Commands,
     meshes: ResMut<Assets<Mesh>>,
@@ -227,6 +242,51 @@ fn reset(
     }
 
     create_map(commands, meshes, materials);
+}
+
+pub fn click_on_tile(
+    mut events: EventReader<PickingEvent>,
+    tiles: Query<(Entity, &Tile, &Transform)>,
+    mut commands: Commands,
+) {
+    let mut boom = None;
+    for event in events.iter() {
+        if let PickingEvent::Clicked(e) = event {
+            if let Some((e, tile, transform)) = tiles.iter().find(|(tile, ..)| e == tile) {
+                if matches!(tile.kind, TileKind::Boom) {
+                    info!("Boom in aile {tile:?}");
+                    boom = Some(transform);
+                    commands.entity(e).despawn();
+                }
+            }
+        }
+    }
+
+    if let Some(boom) = boom {
+        endgame(&mut commands);
+        go_nuclear_from(boom, &mut commands);
+    }
+}
+
+fn go_nuclear_from(source: &Transform, commands: &mut Commands) {
+    let mut rng = thread_rng();
+
+    for _ in 0..20 {
+        let direction = Vec3::new(
+            rng.gen_range::<u32, _>(0..50) as f32,
+            rng.gen_range::<u32, _>(0..50) as f32,
+            rng.gen_range::<u32, _>(0..50) as f32,
+        );
+        commands
+            .spawn_bundle(PbrBundle {
+                transform: Transform::from_translation(source.translation),
+                ..Default::default()
+            })
+            .insert(RigidBody::Dynamic)
+            .insert(CollisionShape::Sphere { radius: 500. })
+            .insert(Velocity::from_linear(source.translation + direction))
+            .insert(Name::new("Boom"));
+    }
 }
 
 fn zoom(
