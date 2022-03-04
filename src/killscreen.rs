@@ -1,7 +1,7 @@
 use bevy::prelude::*;
 
 #[derive(Debug, Component)]
-struct KillScreen;
+pub struct KillScreen;
 
 pub struct GameOverEvent;
 

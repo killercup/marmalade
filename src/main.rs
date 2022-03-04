@@ -28,6 +28,10 @@ fn main() {
     color_eyre::install().unwrap();
 
     let mut app = App::new();
+    app.insert_resource(WindowDescriptor {
+        title: "Marmalade".to_string(),
+        ..Default::default()
+    });
     app.add_plugins(DefaultPlugins);
 
     app.add_plugin(PhysicsPlugin::default());

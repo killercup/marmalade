@@ -815,16 +815,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "bevy_tweening"
-version = "0.3.2"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "7f17543bf43dd92d34e757b859b891f52da17473db2d156ac61d53075dd60816"
-dependencies = [
- "bevy",
- "interpolation",
-]
-
-[[package]]
 name = "bevy_ui"
 version = "0.6.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -2179,12 +2169,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "interpolation"
-version = "0.2.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "d3b7357d2bbc5ee92f8e899ab645233e43d21407573cceb37fed8bc3dede2c02"
-
-[[package]]
 name = "io-kit-sys"
 version = "0.1.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -2410,7 +2394,6 @@ dependencies = [
  "bevy-inspector-egui",
  "bevy_editor_pls",
  "bevy_mod_picking",
- "bevy_tweening",
  "color-eyre",
  "heron",
  "nalgebra-glm",

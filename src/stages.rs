@@ -1,6 +1,9 @@
 use bevy::prelude::*;
 
-use crate::{map_actions::create_map, minesweeper::Shrapnel, params::Params, tile::Tile};
+use crate::{
+    killscreen::KillScreen, map_actions::create_map, minesweeper::Shrapnel, params::Params,
+    tile::Tile,
+};
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum GameStage {
@@ -27,7 +30,7 @@ pub fn trigger_reset(
     mut commands: Commands,
     meshes: ResMut<Assets<Mesh>>,
     materials: ResMut<Assets<StandardMaterial>>,
-    query: Query<(Entity,), Or<(With<Tile>, With<Shrapnel>)>>,
+    query: Query<(Entity,), Or<(With<Tile>, With<Shrapnel>, With<KillScreen>)>>,
 ) {
     if !keys.just_pressed(KeyCode::R) {
         return;

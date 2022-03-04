@@ -4,7 +4,7 @@ use heron::prelude::*;
 use rand::{thread_rng, Rng};
 
 use crate::{
-    killscreen::GameOverEvent,
+    killscreen::{GameOverEvent, KillScreen},
     map_actions::SetMapEvent,
     map_generator::Map,
     params::Params,
@@ -184,13 +184,21 @@ pub fn go_nuclear_if_fast(
     tiles: Query<(&Tile, &Velocity, Entity, &Transform)>,
     mut boom: EventWriter<BoomEvent>,
     mut commands: Commands,
+    has_killscreen: Query<(), With<KillScreen>>,
+    mut game_over: EventWriter<GameOverEvent>,
 ) {
     let blow_threshold = params.bomb_velocity_threshold;
     let bombs = tiles
         .iter()
         .filter(|(tile, ..)| tile.kind == TileKind::Boom);
-    let fast_bombs =
-        bombs.filter(|(_, velocity, ..)| velocity.linear.distance(Vec3::ZERO) > blow_threshold);
+    let fast_bombs = bombs
+        .filter(|(_, velocity, ..)| velocity.linear.distance(Vec3::ZERO) > blow_threshold)
+        .collect::<Vec<_>>();
+
+    if !fast_bombs.is_empty() && has_killscreen.iter().next().is_none() {
+        game_over.send(GameOverEvent);
+    }
+
     for (_, _, entity, source) in fast_bombs {
         boom.send(BoomEvent {
             entity,

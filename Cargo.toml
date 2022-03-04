@@ -5,14 +5,17 @@ edition = "2021"
 
 [dependencies]
 color-eyre = "0.6.0"
-bevy = "0.6.1"
 bevy-inspector-egui = { version = "0.8.2", optional = true }
 bevy_editor_pls = { git = "https://github.com/jakobhellermann/bevy_editor_pls", optional = true }
-bevy_tweening = "0.3.2"
 nalgebra-glm = "0.16.0"
 heron = { version = "2", features = ["2d"] }
 rand = "0.8.5"
 bevy_mod_picking = "0.5.4"
+
+[dependencies.bevy]
+version = "0.6.1"
+default-features = false
+features = ["render", "bevy_winit", "bevy_gilrs", "png", "hdr", "x11"]
 
 [features]
 dev = ["bevy-inspector-egui"]
@@ -25,6 +28,9 @@ members = [".", "xtask"]
 # How about we make our game not super slow?
 [profile.dev]
 opt-level = 1
+
+# [profile.release]
+# opt-level = "z"
 
 # And how about we make our dependencies (like all the math) super fast?
 [profile.dev.package."*"]
