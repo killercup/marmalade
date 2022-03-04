@@ -38,9 +38,16 @@ fn main() {
     app.add_startup_system(create_map);
     app.add_system_set(
         SystemSet::new()
-            .with_run_criteria(FixedTimestep::step(1. / 60.))
+            .label("gameplay controls")
             .with_system(zoom)
             .with_system(set_map)
+            .with_system(endgame)
+            .with_system(reset),
+    );
+    app.add_system_set(
+        SystemSet::new()
+            .label("movements")
+            .with_run_criteria(FixedTimestep::step(1. / 60.))
             .with_system(tile::input)
             .with_system(tile::mouse_input)
             .with_system(tile::go_home),
@@ -189,6 +196,33 @@ fn set_map(
 
     *stage = Stage::MapSet;
     info!("Game set");
+}
+
+fn endgame(keys: Res<Input<KeyCode>>, mut commands: Commands) {
+    if !keys.just_pressed(KeyCode::Q) {
+        return;
+    }
+
+    commands.insert_resource(Stage::KillScreen);
+    commands.insert_resource(ForceParams::chaos());
+}
+
+fn reset(
+    keys: Res<Input<KeyCode>>,
+    mut commands: Commands,
+    meshes: ResMut<Assets<Mesh>>,
+    materials: ResMut<Assets<StandardMaterial>>,
+    query: Query<(Entity,), With<Tile>>,
+) {
+    if !keys.just_pressed(KeyCode::R) {
+        return;
+    }
+
+    for (entity,) in query.iter() {
+        commands.entity(entity).despawn();
+    }
+
+    create_map(commands, meshes, materials);
 }
 
 fn zoom(
