@@ -4,6 +4,7 @@ use heron::prelude::*;
 use rand::{thread_rng, Rng};
 
 use crate::{
+    map_actions::SetMapEvent,
     map_generator::Map,
     stages::GameStage,
     tile::{Tile, TileKind},
@@ -24,17 +25,23 @@ pub struct ClearTileEvent {
 pub fn click_on_tile(
     tiles: Query<(Entity, &Tile, &Transform)>,
     stage: Res<GameStage>,
+    mut set_map: EventWriter<SetMapEvent>,
     mut events: EventReader<PickingEvent>,
     mut boom: EventWriter<BoomEvent>,
     mut clear: EventWriter<ClearTileEvent>,
 ) {
-    if *stage != GameStage::MapSet {
-        return;
-    }
-
     for event in events.iter() {
         if let PickingEvent::Clicked(e) = event {
             if let Some((entity, tile, transform)) = tiles.iter().find(|(tile, ..)| e == tile) {
+                if *stage != GameStage::MapSet {
+                    set_map.send(SetMapEvent);
+                    clear.send(ClearTileEvent {
+                        entity,
+                        tile: tile.clone(),
+                    });
+                    return;
+                }
+
                 match tile.kind {
                     TileKind::Boom => {
                         info!("Boom in aisle {tile:?}");

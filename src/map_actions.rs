@@ -65,17 +65,27 @@ pub fn create_map(
     commands.insert_resource(map);
 }
 
+#[derive(Debug)]
+pub struct SetMapEvent;
+
+pub fn trigger_set_map(keys: Res<Input<KeyCode>>, mut trigger: EventWriter<SetMapEvent>) {
+    if !keys.just_pressed(KeyCode::X) {
+        return;
+    }
+    trigger.send(SetMapEvent);
+}
+
 pub fn set_map(
-    keys: Res<Input<KeyCode>>,
+    mut events: EventReader<SetMapEvent>,
     mut stage: ResMut<GameStage>,
     mut map: ResMut<Map>,
     mut materials: ResMut<Assets<StandardMaterial>>,
     mut query: Query<(&mut Tile, &mut Handle<StandardMaterial>)>,
 ) {
-    if !keys.just_pressed(KeyCode::X) {
+    if *stage != GameStage::NewGame {
         return;
     }
-    if *stage != GameStage::NewGame {
+    if events.iter().next().is_none() {
         return;
     }
 

@@ -52,10 +52,15 @@ fn main() {
         SystemSet::new()
             .label(SystemSets::GameplayControls)
             .with_system(zoom)
-            .with_system(map_actions::set_map)
             .with_system(minesweeper::click_on_tile)
+            .with_system(map_actions::trigger_set_map)
             .with_system(stages::trigger_endgame)
             .with_system(stages::trigger_reset),
+    );
+    app.add_system_set(
+        SystemSet::new()
+            .label(SystemSets::Map)
+            .with_system(map_actions::set_map),
     );
     app.add_system_set(
         SystemSet::new()
@@ -69,12 +74,15 @@ fn main() {
         SystemSet::new()
             .label(SystemSets::Reactions)
             .after(SystemSets::Movements)
+            .after(SystemSets::Map)
             .with_system(minesweeper::clear)
             .with_system(minesweeper::go_nuclear),
     );
 
     app.add_event::<minesweeper::BoomEvent>();
     app.add_event::<minesweeper::ClearTileEvent>();
+    app.add_event::<minesweeper::ClearTileEvent>();
+    app.add_event::<map_actions::SetMapEvent>();
 
     app.register_type::<Tile>();
     app.run();
@@ -83,6 +91,7 @@ fn main() {
 #[derive(SystemLabel, Debug, Clone, Copy, Hash, Eq, PartialEq)]
 enum SystemSets {
     GameplayControls,
+    Map,
     Movements,
     Reactions,
 }
