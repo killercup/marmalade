@@ -10,10 +10,7 @@ use bevy_editor_pls::prelude::*;
 use bevy_inspector_egui::WorldInspectorPlugin;
 
 mod tile;
-use map_generator::Map;
-use params::ForceParams;
-use stages::Stage;
-use tile::{Tile, TileKind};
+use tile::Tile;
 mod map_actions;
 mod map_generator;
 mod minesweeper;
@@ -53,7 +50,7 @@ fn main() {
     app.add_startup_system(map_actions::create_map);
     app.add_system_set(
         SystemSet::new()
-            .label("gameplay controls")
+            .label(SystemSets::GameplayControls)
             .with_system(zoom)
             .with_system(map_actions::set_map)
             .with_system(minesweeper::click_on_tile)
@@ -62,7 +59,7 @@ fn main() {
     );
     app.add_system_set(
         SystemSet::new()
-            .label("movements")
+            .label(SystemSets::Movements)
             .with_run_criteria(FixedTimestep::step(1. / 60.))
             // .with_system(tile::input)
             .with_system(tile::mouse_input)
@@ -70,7 +67,8 @@ fn main() {
     );
     app.add_system_set(
         SystemSet::new()
-            .label("reactions")
+            .label(SystemSets::Reactions)
+            .after(SystemSets::Movements)
             .with_system(minesweeper::go_nuclear),
     );
 
@@ -79,6 +77,13 @@ fn main() {
 
     app.register_type::<Tile>();
     app.run();
+}
+
+#[derive(SystemLabel, Debug, Clone, Copy, Hash, Eq, PartialEq)]
+enum SystemSets {
+    GameplayControls,
+    Movements,
+    Reactions,
 }
 
 #[derive(Component)]
