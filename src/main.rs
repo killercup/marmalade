@@ -69,6 +69,7 @@ fn main() {
         SystemSet::new()
             .label(SystemSets::Reactions)
             .after(SystemSets::Movements)
+            .with_system(minesweeper::clear)
             .with_system(minesweeper::go_nuclear),
     );
 

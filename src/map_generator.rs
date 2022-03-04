@@ -85,7 +85,7 @@ impl Map {
         for y in 0..self.height {
             for x in 0..self.width {
                 let idx = self.coord_to_index((x, y)).unwrap();
-                if matches!(self.map[idx], TileKind::Boom) {
+                if self.map[idx] == TileKind::Boom {
                     continue;
                 }
                 let num = self.bomb_count_at(idx);
@@ -139,7 +139,7 @@ impl Map {
     fn bomb_count_at(&self, index: usize) -> usize {
         self.neighbors(index)
             .iter()
-            .filter(|(_, _, tile)| matches!(tile, TileKind::Boom))
+            .filter(|(_, _, tile)| *tile == TileKind::Boom)
             .count()
     }
 }

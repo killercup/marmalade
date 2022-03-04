@@ -5,7 +5,7 @@ use heron::prelude::*;
 use crate::{
     map_generator::Map,
     params::ForceParams,
-    stages::Stage,
+    stages::GameStage,
     tile::{Tile, TileKind},
     BLOCK_OFFSET, BLOCK_SIZE, MAP_COLUMNS, MAP_ROWS,
 };
@@ -20,7 +20,7 @@ pub fn create_map(
         base_color: Color::hsl(125., 0.5, 0.5),
         ..Default::default()
     });
-    commands.insert_resource(Stage::NewGame);
+    commands.insert_resource(GameStage::NewGame);
     commands.insert_resource(ForceParams::regular());
 
     let map = Map::new(MAP_ROWS, MAP_COLUMNS);
@@ -67,7 +67,7 @@ pub fn create_map(
 
 pub fn set_map(
     keys: Res<Input<KeyCode>>,
-    mut stage: ResMut<Stage>,
+    mut stage: ResMut<GameStage>,
     mut map: ResMut<Map>,
     mut materials: ResMut<Assets<StandardMaterial>>,
     mut query: Query<(&mut Tile, &mut Handle<StandardMaterial>)>,
@@ -75,11 +75,11 @@ pub fn set_map(
     if !keys.just_pressed(KeyCode::X) {
         return;
     }
-    if !matches!(*stage, Stage::NewGame) {
+    if *stage != GameStage::NewGame {
         return;
     }
 
-    map.set_bombs(16);
+    map.set_bombs(50);
 
     let red_tile = materials.add(StandardMaterial {
         base_color: Color::hsl(15., 0.5, 0.5),
@@ -105,6 +105,6 @@ pub fn set_map(
         }
     }
 
-    *stage = Stage::MapSet;
+    *stage = GameStage::MapSet;
     info!("Game set");
 }

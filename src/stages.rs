@@ -2,8 +2,8 @@ use bevy::prelude::*;
 
 use crate::{map_actions::create_map, minesweeper::Shrapnel, params::ForceParams, tile::Tile};
 
-#[derive(Debug, Clone, Copy)]
-pub enum Stage {
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum GameStage {
     NewGame,
     MapSet,
     KillScreen,
@@ -18,7 +18,7 @@ pub fn trigger_endgame(keys: Res<Input<KeyCode>>, mut commands: Commands) {
 }
 
 pub fn endgame(commands: &mut Commands) {
-    commands.insert_resource(Stage::KillScreen);
+    commands.insert_resource(GameStage::KillScreen);
     commands.insert_resource(ForceParams::chaos());
 }
 
