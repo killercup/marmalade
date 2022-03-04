@@ -1,6 +1,8 @@
 use bevy::{input::mouse::MouseMotion, prelude::*};
 use heron::Velocity;
 
+use crate::params::ForceParams;
+
 #[derive(Component, Reflect, Default, Debug)]
 #[reflect(Component)]
 pub struct Tile {
@@ -27,15 +29,16 @@ impl Default for TileKind {
 }
 
 pub fn input(
-    keys: Res<Input<KeyCode>>,
     windows: Res<Windows>,
-    mut query: Query<(&mut Transform,), With<Tile>>,
     frame_time: Res<Time>,
+    keys: Res<Input<KeyCode>>,
+    params: Res<ForceParams>,
+    mut query: Query<(&mut Transform,), With<Tile>>,
 ) {
     let window = windows.get_primary().unwrap();
 
     let mut totaloffset = Vec3::ZERO;
-    let move_speed = 0.5;
+    let move_speed = params.keyboard_move_speed;
 
     if keys.pressed(KeyCode::Left) {
         totaloffset += Vec3::new(-1., 0., 0.);
@@ -59,13 +62,13 @@ pub fn input(
 }
 
 pub fn mouse_input(
-    mut motion: EventReader<MouseMotion>,
     windows: Res<Windows>,
-    mut query: Query<(&mut Velocity, &Transform), With<Tile>>,
     frame_time: Res<Time>,
+    params: Res<ForceParams>,
+    mut motion: EventReader<MouseMotion>,
+    mut query: Query<(&mut Velocity, &Transform), With<Tile>>,
 ) {
     let mut totaloffset = Vec3::ZERO;
-    let move_speed = 400.;
 
     for ev in motion.iter() {
         totaloffset += Vec3::new(ev.delta.x, -ev.delta.y, 0.);
@@ -82,11 +85,11 @@ pub fn mouse_input(
         Vec3::ZERO
     };
 
-    totaloffset = totaloffset * move_speed * frame_time.delta_seconds();
+    totaloffset = totaloffset * params.mouse_move_speed * frame_time.delta_seconds();
 
     for (mut velocity, transform) in query.iter_mut() {
         let distance_from_mouse_pointer = Vec3::distance(cursor_position, transform.translation);
-        let influence = 1. - nalgebra_glm::smoothstep(3., 20., distance_from_mouse_pointer);
+        let influence = params.mouse_influence(distance_from_mouse_pointer);
 
         *velocity = velocity.with_linear((velocity.linear + totaloffset) * influence);
     }
@@ -101,29 +104,7 @@ pub fn go_home(params: Res<ForceParams>, mut query: Query<(&mut Velocity, &Trans
 
         let influence = params.go_home_influence(distance);
         let direction = Vec3::normalize(thingy.original_position - transform.translation);
-        let force_mult = params.go_home_factor;
-        *velocity = velocity.with_linear(velocity.linear + direction * influence * force_mult);
-    }
-}
-
-pub struct ForceParams {
-    pub go_home_factor: f32,
-    go_home_influence: (f32, f32),
-}
-
-impl ForceParams {
-    pub fn go_home_influence(&self, distance: f32) -> f32 {
-        nalgebra_glm::smoothstep(
-            self.go_home_influence.0,
-            self.go_home_influence.1,
-            distance.sqrt(),
-        )
-    }
-
-    pub fn regular() -> Self {
-        Self {
-            go_home_factor: 150.,
-            go_home_influence: (0., 10.),
-        }
+        *velocity =
+            velocity.with_linear(velocity.linear + direction * influence * params.go_home_factor);
     }
 }

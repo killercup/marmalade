@@ -10,8 +10,10 @@ use bevy_inspector_egui::WorldInspectorPlugin;
 
 mod tile;
 use map::Map;
-use tile::{ForceParams, Tile, TileKind};
+use params::ForceParams;
+use tile::{Tile, TileKind};
 mod map;
+mod params;
 
 const BLOCK_SIZE: f32 = 20.;
 const BLOCK_OFFSET: f32 = 35.;
