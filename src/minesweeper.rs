@@ -121,11 +121,6 @@ pub fn clear(
             })
             .collect();
 
-        info!(
-            "clearing {me:?}, found {} neighbors, {} are fine",
-            neighbors.len(),
-            neighbors_we_care_about.len()
-        );
         commands.entity(me.entity).despawn();
         existing_tiles.remove(&me.index);
 

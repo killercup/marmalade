@@ -1,5 +1,5 @@
 use bevy::{input::mouse::MouseMotion, prelude::*};
-use heron::Velocity;
+use heron::{PhysicMaterial, Velocity};
 
 use crate::params::Params;
 
@@ -66,7 +66,7 @@ pub fn mouse_input(
     frame_time: Res<Time>,
     params: Res<Params>,
     mut motion: EventReader<MouseMotion>,
-    mut query: Query<(&mut Velocity, &Transform), With<Tile>>,
+    mut query: Query<(&mut Velocity, &Transform, &PhysicMaterial), With<Tile>>,
 ) {
     let mut totaloffset = Vec3::ZERO;
 
@@ -87,15 +87,19 @@ pub fn mouse_input(
 
     totaloffset = totaloffset * params.mouse_move_speed * frame_time.delta_seconds();
 
-    for (mut velocity, transform) in query.iter_mut() {
+    for (mut velocity, transform, physics_material) in query.iter_mut() {
         let distance_from_mouse_pointer = Vec3::distance(cursor_position, transform.translation);
         let influence = params.mouse_influence(distance_from_mouse_pointer);
-
-        *velocity = velocity.with_linear((velocity.linear + totaloffset) * influence);
+        let acceleration = totaloffset * influence / physics_material.density;
+        *velocity = velocity.with_linear(velocity.linear + acceleration);
     }
 }
 
-pub fn go_home(params: Res<Params>, mut query: Query<(&mut Velocity, &Transform, &Tile)>) {
+pub fn go_home(
+    frame_time: Res<Time>,
+    params: Res<Params>,
+    mut query: Query<(&mut Velocity, &Transform, &Tile)>,
+) {
     let damping_factor = 0.5;
     for (mut velocity, transform, thingy) in query.iter_mut() {
         let distance = thingy.original_position.distance(transform.translation);
@@ -106,7 +110,8 @@ pub fn go_home(params: Res<Params>, mut query: Query<(&mut Velocity, &Transform,
         let influence = params.go_home_influence(distance);
         let direction = Vec3::normalize(thingy.original_position - transform.translation);
         let damping = velocity.linear * -1.0 * damping_factor;
-        *velocity = velocity
-            .with_linear(velocity.linear + damping + direction * influence * params.go_home_factor);
+        let acceleration =
+            damping + direction * influence * frame_time.delta_seconds() * params.go_home_factor;
+        *velocity = velocity.with_linear(velocity.linear + acceleration);
     }
 }
