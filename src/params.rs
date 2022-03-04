@@ -5,6 +5,7 @@ pub struct Params {
     pub keyboard_move_speed: f32,
     pub mouse_move_speed: f32,
     pub mouse_influence: (f32, f32),
+    pub bomb_velocity_threshold: f32,
 }
 
 impl Params {
@@ -16,6 +17,7 @@ impl Params {
             keyboard_move_speed: 0.5,
             mouse_move_speed: 800.,
             mouse_influence: (50., 200.),
+            bomb_velocity_threshold: 300.,
         }
     }
 
@@ -27,6 +29,7 @@ impl Params {
             keyboard_move_speed: 0.5,
             mouse_move_speed: 400.,
             mouse_influence: (100., 600.),
+            bomb_velocity_threshold: 100.,
         }
     }
 

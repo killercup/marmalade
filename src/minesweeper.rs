@@ -6,6 +6,7 @@ use rand::{thread_rng, Rng};
 use crate::{
     map_actions::SetMapEvent,
     map_generator::Map,
+    params::Params,
     stages::GameStage,
     tile::{Tile, TileKind},
 };
@@ -176,11 +177,12 @@ pub fn go_nuclear(mut events: EventReader<BoomEvent>, mut commands: Commands) {
 }
 
 pub fn go_nuclear_if_fast(
+    params: Res<Params>,
     tiles: Query<(&Tile, &Velocity, Entity, &Transform)>,
     mut boom: EventWriter<BoomEvent>,
     mut commands: Commands,
 ) {
-    let blow_threshold = 200.0;
+    let blow_threshold = params.bomb_velocity_threshold;
     let bombs = tiles
         .iter()
         .filter(|(tile, ..)| tile.kind == TileKind::Boom);
