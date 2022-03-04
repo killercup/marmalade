@@ -96,6 +96,7 @@ pub fn mouse_input(
 }
 
 pub fn go_home(params: Res<Params>, mut query: Query<(&mut Velocity, &Transform, &Tile)>) {
+    let damping_factor = 0.5;
     for (mut velocity, transform, thingy) in query.iter_mut() {
         let distance = thingy.original_position.distance(transform.translation);
         if distance < 0.001 {
@@ -104,7 +105,8 @@ pub fn go_home(params: Res<Params>, mut query: Query<(&mut Velocity, &Transform,
 
         let influence = params.go_home_influence(distance);
         let direction = Vec3::normalize(thingy.original_position - transform.translation);
-        *velocity =
-            velocity.with_linear(velocity.linear + direction * influence * params.go_home_factor);
+        let damping = velocity.linear * -1.0 * damping_factor;
+        *velocity = velocity
+            .with_linear(velocity.linear + damping + direction * influence * params.go_home_factor);
     }
 }

@@ -16,8 +16,8 @@ impl Params {
             go_home_factor: 150.,
             go_home_influence: (0., 100.),
             keyboard_move_speed: 0.5,
-            mouse_move_speed: 400.,
-            mouse_influence: (3., 20.),
+            mouse_move_speed: 800.,
+            mouse_influence: (50., 200.),
         }
     }
 
