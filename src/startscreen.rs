@@ -53,14 +53,6 @@ pub fn draw(
                             color: Color::WHITE,
                         },
                     },
-                    TextSection {
-                        value: "Click any tile to start\n".to_string(),
-                        style: TextStyle {
-                            font: font.clone(),
-                            font_size: 24.0,
-                            color: Color::WHITE,
-                        },
-                    },
                 ],
                 alignment: TextAlignment {
                     horizontal: HorizontalAlign::Left,

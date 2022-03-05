@@ -1,5 +1,7 @@
 use bevy::prelude::*;
 
+use crate::stages::GameStage;
+
 #[derive(Debug, Component)]
 pub struct KillScreen;
 
@@ -13,6 +15,8 @@ pub fn draw(
     if events.iter().next().is_none() {
         return;
     }
+
+    let font = asset_server.load("fonts/FiraSans-Bold.ttf");
 
     commands
         .spawn_bundle(TextBundle {
@@ -29,9 +33,9 @@ pub fn draw(
             text: Text {
                 sections: vec![
                     TextSection {
-                        value: "B O O M".to_string(),
+                        value: "B O O M ".to_string(),
                         style: TextStyle {
-                            font: asset_server.load("fonts/FiraSans-Bold.ttf"),
+                            font: font.clone(),
                             font_size: 64.0,
                             color: Color::WHITE,
                         },
@@ -39,7 +43,7 @@ pub fn draw(
                     TextSection {
                         value: "Press R to restart".to_string(),
                         style: TextStyle {
-                            font: asset_server.load("fonts/FiraSans-Bold.ttf"),
+                            font,
                             font_size: 24.0,
                             color: Color::WHITE,
                         },
@@ -53,4 +57,15 @@ pub fn draw(
             ..Default::default()
         })
         .insert(KillScreen);
+}
+
+pub fn hide(
+    stage: Res<GameStage>,
+    kill_screen: Query<(Entity,), With<KillScreen>>,
+    mut commands: Commands,
+) {
+    if *stage == GameStage::KillScreen {
+        return;
+    };
+    kill_screen.for_each(|(e,)| commands.entity(e).despawn());
 }

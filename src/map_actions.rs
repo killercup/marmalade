@@ -1,6 +1,7 @@
 use bevy::prelude::*;
 use bevy_mod_picking::PickableBundle;
 use heron::prelude::*;
+use nalgebra_glm::smoothstep;
 
 use crate::{
     map_generator::Map,
@@ -28,7 +29,9 @@ pub fn create_map(
     commands.insert_resource(GameStage::NewGame);
     commands.insert_resource(Params::regular());
 
-    let map = Map::new(params.map_rows, params.map_columns);
+    let mut map = Map::new(params.map_rows, params.map_columns);
+    map.set_bombs(params.bomb_count);
+
     let blox = (params.map_rows * params.map_columns) as f32;
 
     for (x, kind) in map.map.iter().enumerate() {
@@ -54,10 +57,22 @@ pub fn create_map(
                 border_radius: None,
             })
             .insert(Velocity::from(Vec2::ZERO))
-            .insert(PhysicMaterial {
-                restitution: 0.9,
-                friction: 0.2,
-                density: 1.,
+            .insert(match kind {
+                TileKind::Boom => PhysicMaterial {
+                    restitution: 0.2,
+                    friction: 0.2,
+                    density: 5.,
+                },
+                TileKind::Danger(x) => PhysicMaterial {
+                    restitution: 0.9,
+                    friction: 0.2,
+                    density: 1. + 2. * smoothstep(1., 8., *x as f32),
+                },
+                TileKind::Fine => PhysicMaterial {
+                    restitution: 0.9,
+                    friction: 0.2,
+                    density: 1.,
+                },
             })
             .insert(Damping::from_linear(0.1).with_angular(0.9))
             .insert(Tile {
@@ -82,13 +97,7 @@ pub fn trigger_set_map(keys: Res<Input<KeyCode>>, mut trigger: EventWriter<SetMa
     trigger.send(SetMapEvent);
 }
 
-pub fn set_map(
-    params: Res<Params>,
-    mut events: EventReader<SetMapEvent>,
-    mut stage: ResMut<GameStage>,
-    mut map: ResMut<Map>,
-    mut query: Query<(&mut Tile, &mut PhysicMaterial)>,
-) {
+pub fn set_map(mut events: EventReader<SetMapEvent>, mut stage: ResMut<GameStage>) {
     if *stage != GameStage::NewGame {
         return;
     }
@@ -96,24 +105,7 @@ pub fn set_map(
         return;
     }
 
-    map.set_bombs(params.bomb_count);
-
-    for (mut tile, mut physics) in query.iter_mut() {
-        tile.kind = map.map[tile.index_in_map];
-        match tile.kind {
-            TileKind::Boom => {
-                physics.density = 5.;
-                physics.restitution = 0.2;
-            }
-            TileKind::Danger(_) => {
-                physics.density = 2.;
-            }
-            TileKind::Fine => {
-                physics.density = 1.;
-                // same old green
-            }
-        }
-    }
+    // Previously we set the map here, but that is no longer required
 
     *stage = GameStage::MapSet;
     info!("Game set");

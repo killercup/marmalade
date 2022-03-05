@@ -150,9 +150,17 @@ pub fn clear(
     }
 }
 
-pub fn go_nuclear(mut events: EventReader<BoomEvent>, mut commands: Commands) {
+pub fn go_nuclear(
+    mut stage: ResMut<GameStage>,
+    mut events: EventReader<BoomEvent>,
+    mut commands: Commands,
+) {
     let mut rng = thread_rng();
     for BoomEvent { entity: _, source } in events.iter() {
+        if *stage != GameStage::KillScreen {
+            *stage = GameStage::KillScreen;
+        }
+
         for i in 0..20 {
             let direction = Vec3::new(
                 (rng.gen_range::<i32, _>(0..2000) - 1000) as f32,

@@ -82,6 +82,7 @@ fn main() {
             .with_system(startscreen::draw)
             .with_system(startscreen::hide)
             .with_system(killscreen::draw)
+            .with_system(killscreen::hide)
             .with_system(minesweeper::go_nuclear_if_fast)
             .with_system(minesweeper::go_nuclear),
     );

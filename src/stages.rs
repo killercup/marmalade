@@ -2,7 +2,7 @@ use bevy::prelude::*;
 
 use crate::{
     killscreen::KillScreen, map_actions::create_map, minesweeper::Shrapnel, params::Params,
-    tile::Tile,
+    startscreen::GameStartEvent, tile::Tile,
 };
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -29,10 +29,11 @@ pub fn trigger_reset(
     params: Res<Params>,
     asset_server: Res<AssetServer>,
     keys: Res<Input<KeyCode>>,
-    mut commands: Commands,
     meshes: ResMut<Assets<Mesh>>,
     materials: ResMut<Assets<StandardMaterial>>,
-    query: Query<(Entity,), Or<(With<Tile>, With<Shrapnel>, With<KillScreen>)>>,
+    query: Query<(Entity,), Or<(With<Tile>, With<Shrapnel>)>>,
+    mut commands: Commands,
+    mut trigger: EventWriter<GameStartEvent>,
 ) {
     if !keys.just_pressed(KeyCode::R) {
         return;
@@ -43,4 +44,6 @@ pub fn trigger_reset(
     }
 
     create_map(params, asset_server, commands, meshes, materials);
+
+    trigger.send(GameStartEvent);
 }
