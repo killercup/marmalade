@@ -1,6 +1,6 @@
 use bevy::prelude::*;
 
-use crate::params::Params;
+use crate::{params::Params, stages::GameStage};
 
 #[derive(Debug, Component)]
 pub struct StartScreen;
@@ -18,16 +18,19 @@ pub fn draw(
     }
 
     let count = params.bomb_count;
+    let font = asset_server.load("fonts/FiraSans-Bold.ttf");
 
     commands
         .spawn_bundle(TextBundle {
             style: Style {
                 align_self: AlignSelf::FlexStart,
                 position_type: PositionType::Absolute,
-                flex_direction: FlexDirection::Column,
+                flex_direction: FlexDirection::ColumnReverse,
+                align_items: AlignItems::FlexStart,
+                flex_wrap: FlexWrap::Wrap,
                 position: Rect {
-                    top: Val::Px(5.0),
-                    right: Val::Px(15.0),
+                    top: Val::Px(15.0),
+                    left: Val::Px(15.0),
                     ..Default::default()
                 },
                 ..Default::default()
@@ -35,36 +38,80 @@ pub fn draw(
             text: Text {
                 sections: vec![
                     TextSection {
-                        value: "CLEAR THE FIELD".to_string(),
+                        value: "CLEAR THE FIELD\n".to_string(),
                         style: TextStyle {
-                            font: asset_server.load("fonts/FiraSans-Bold.ttf"),
+                            font: font.clone(),
                             font_size: 64.0,
                             color: Color::WHITE,
                         },
                     },
                     TextSection {
-                        value: format!("There are {count} bombs"),
+                        value: format!("There are {count} bombs\n"),
                         style: TextStyle {
-                            font: asset_server.load("fonts/FiraSans-Bold.ttf"),
-                            font_size: 48.0,
+                            font: font.clone(),
+                            font_size: 24.0,
                             color: Color::WHITE,
                         },
                     },
                     TextSection {
-                        value: "Caution: Don't shake the bombs!".to_string(),
+                        value: "Click any tile to start\n".to_string(),
                         style: TextStyle {
-                            font: asset_server.load("fonts/FiraSans-Bold.ttf"),
+                            font: font.clone(),
                             font_size: 24.0,
                             color: Color::WHITE,
                         },
                     },
                 ],
                 alignment: TextAlignment {
-                    horizontal: HorizontalAlign::Center,
+                    horizontal: HorizontalAlign::Left,
                     ..Default::default()
                 },
             },
             ..Default::default()
         })
         .insert(StartScreen);
+
+    commands
+        .spawn_bundle(TextBundle {
+            style: Style {
+                align_self: AlignSelf::FlexStart,
+                position_type: PositionType::Absolute,
+                flex_direction: FlexDirection::ColumnReverse,
+                align_items: AlignItems::FlexStart,
+                flex_wrap: FlexWrap::Wrap,
+                position: Rect {
+                    bottom: Val::Px(15.0),
+                    right: Val::Px(15.0),
+                    ..Default::default()
+                },
+                ..Default::default()
+            },
+            text: Text {
+                sections: vec![TextSection {
+                    value: "Caution: Don't shake the bombs!".to_string(),
+                    style: TextStyle {
+                        font,
+                        font_size: 24.0,
+                        color: Color::WHITE,
+                    },
+                }],
+                alignment: TextAlignment {
+                    horizontal: HorizontalAlign::Left,
+                    ..Default::default()
+                },
+            },
+            ..Default::default()
+        })
+        .insert(StartScreen);
+}
+
+pub fn hide(
+    stage: Res<GameStage>,
+    start_screen: Query<(Entity,), With<StartScreen>>,
+    mut commands: Commands,
+) {
+    if *stage == GameStage::NewGame {
+        return;
+    };
+    start_screen.for_each(|(e,)| commands.entity(e).despawn());
 }

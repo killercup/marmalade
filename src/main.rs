@@ -12,6 +12,7 @@ use bevy_inspector_egui::WorldInspectorPlugin;
 mod tile;
 use params::Params;
 use stages::GameStage;
+use startscreen::GameStartEvent;
 use tile::Tile;
 mod killscreen;
 mod map_actions;
@@ -79,6 +80,7 @@ fn main() {
             .after(SystemSets::Map)
             .with_system(minesweeper::clear)
             .with_system(startscreen::draw)
+            .with_system(startscreen::hide)
             .with_system(killscreen::draw)
             .with_system(minesweeper::go_nuclear_if_fast)
             .with_system(minesweeper::go_nuclear),
@@ -109,7 +111,7 @@ enum SystemSets {
 #[derive(Component)]
 struct MainCamera;
 
-fn setup(mut commands: Commands) {
+fn setup(mut commands: Commands, mut trigger: EventWriter<GameStartEvent>) {
     commands.spawn_bundle(UiCameraBundle::default());
     commands.insert_resource(ClearColor(Color::BLACK));
 
@@ -142,6 +144,8 @@ fn setup(mut commands: Commands) {
         },
         ..Default::default()
     });
+
+    trigger.send(GameStartEvent);
 }
 
 fn zoom(
