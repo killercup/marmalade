@@ -1,26 +1,32 @@
 use bevy::prelude::*;
 
-#[derive(Debug, Component)]
-pub struct KillScreen;
+use crate::params::Params;
 
-pub struct GameOverEvent;
+#[derive(Debug, Component)]
+pub struct StartScreen;
+
+pub struct GameStartEvent;
 
 pub fn draw(
     asset_server: Res<AssetServer>,
-    mut events: EventReader<GameOverEvent>,
+    params: Res<Params>,
+    mut events: EventReader<GameStartEvent>,
     mut commands: Commands,
 ) {
     if events.iter().next().is_none() {
         return;
     }
 
+    let count = params.bomb_count;
+
     commands
         .spawn_bundle(TextBundle {
             style: Style {
-                align_self: AlignSelf::FlexEnd,
+                align_self: AlignSelf::FlexStart,
                 position_type: PositionType::Absolute,
+                flex_direction: FlexDirection::Column,
                 position: Rect {
-                    bottom: Val::Px(5.0),
+                    top: Val::Px(5.0),
                     right: Val::Px(15.0),
                     ..Default::default()
                 },
@@ -29,7 +35,7 @@ pub fn draw(
             text: Text {
                 sections: vec![
                     TextSection {
-                        value: "B O O M".to_string(),
+                        value: "CLEAR THE FIELD".to_string(),
                         style: TextStyle {
                             font: asset_server.load("fonts/FiraSans-Bold.ttf"),
                             font_size: 64.0,
@@ -37,7 +43,15 @@ pub fn draw(
                         },
                     },
                     TextSection {
-                        value: "Press R to restart".to_string(),
+                        value: format!("There are {count} bombs"),
+                        style: TextStyle {
+                            font: asset_server.load("fonts/FiraSans-Bold.ttf"),
+                            font_size: 48.0,
+                            color: Color::WHITE,
+                        },
+                    },
+                    TextSection {
+                        value: "Caution: Don't shake the bombs!".to_string(),
                         style: TextStyle {
                             font: asset_server.load("fonts/FiraSans-Bold.ttf"),
                             font_size: 24.0,
@@ -52,5 +66,5 @@ pub fn draw(
             },
             ..Default::default()
         })
-        .insert(KillScreen);
+        .insert(StartScreen);
 }

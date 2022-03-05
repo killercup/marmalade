@@ -10,6 +10,8 @@ use bevy_editor_pls::prelude::*;
 use bevy_inspector_egui::WorldInspectorPlugin;
 
 mod tile;
+use params::Params;
+use stages::GameStage;
 use tile::Tile;
 mod killscreen;
 mod map_actions;
@@ -17,12 +19,7 @@ mod map_generator;
 mod minesweeper;
 mod params;
 mod stages;
-
-const BLOCK_SIZE: f32 = 20.;
-const BLOCK_OFFSET: f32 = 35.;
-const MAP_ROWS: usize = 24;
-const MAP_COLUMNS: usize = 24;
-const BOMB_COUNT: usize = 64;
+mod startscreen;
 
 fn main() {
     color_eyre::install().unwrap();
@@ -81,6 +78,7 @@ fn main() {
             .after(SystemSets::Movements)
             .after(SystemSets::Map)
             .with_system(minesweeper::clear)
+            .with_system(startscreen::draw)
             .with_system(killscreen::draw)
             .with_system(minesweeper::go_nuclear_if_fast)
             .with_system(minesweeper::go_nuclear),
@@ -89,9 +87,14 @@ fn main() {
     app.add_event::<map_actions::SetMapEvent>();
     app.add_event::<minesweeper::BoomEvent>();
     app.add_event::<minesweeper::ClearTileEvent>();
+    app.add_event::<startscreen::GameStartEvent>();
     app.add_event::<killscreen::GameOverEvent>();
 
     app.register_type::<Tile>();
+
+    app.insert_resource(GameStage::NewGame);
+    app.insert_resource(Params::regular());
+
     app.run();
 }
 

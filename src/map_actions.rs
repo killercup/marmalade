@@ -7,16 +7,18 @@ use crate::{
     params::Params,
     stages::GameStage,
     tile::{Tile, TileKind},
-    BLOCK_OFFSET, BLOCK_SIZE, BOMB_COUNT, MAP_COLUMNS, MAP_ROWS,
 };
 
 pub fn create_map(
+    params: Res<Params>,
     asset_server: Res<AssetServer>,
     mut commands: Commands,
     mut meshes: ResMut<Assets<Mesh>>,
     mut materials: ResMut<Assets<StandardMaterial>>,
 ) {
-    let mesh = meshes.add(Mesh::from(shape::Cube { size: BLOCK_SIZE }));
+    let mesh = meshes.add(Mesh::from(shape::Cube {
+        size: params.block_size,
+    }));
     let albedo = asset_server.load("graphics/TileAlbedo.png");
     let green_tile = materials.add(StandardMaterial {
         base_color: Color::hsl(125., 0.5, 0.5),
@@ -26,14 +28,16 @@ pub fn create_map(
     commands.insert_resource(GameStage::NewGame);
     commands.insert_resource(Params::regular());
 
-    let map = Map::new(MAP_ROWS, MAP_COLUMNS);
-    let blox = (MAP_ROWS * MAP_COLUMNS) as f32;
+    let map = Map::new(params.map_rows, params.map_columns);
+    let blox = (params.map_rows * params.map_columns) as f32;
 
     for (x, kind) in map.map.iter().enumerate() {
-        let size = Vec3::new(BLOCK_SIZE, BLOCK_SIZE, 0.0);
+        let size = Vec3::new(params.block_size, params.block_size, 0.0);
         let original_position = Vec3::new(
-            (x as f32 / blox.sqrt()).floor() * BLOCK_OFFSET - blox.sqrt() * BLOCK_OFFSET / 2.0,
-            (x as f32 % blox.sqrt()).floor() * BLOCK_OFFSET - blox.sqrt() * BLOCK_OFFSET / 2.0,
+            (x as f32 / blox.sqrt()).floor() * params.block_offset
+                - blox.sqrt() * params.block_offset / 2.0,
+            (x as f32 % blox.sqrt()).floor() * params.block_offset
+                - blox.sqrt() * params.block_offset / 2.0,
             0.0,
         );
 
@@ -79,6 +83,7 @@ pub fn trigger_set_map(keys: Res<Input<KeyCode>>, mut trigger: EventWriter<SetMa
 }
 
 pub fn set_map(
+    params: Res<Params>,
     mut events: EventReader<SetMapEvent>,
     mut stage: ResMut<GameStage>,
     mut map: ResMut<Map>,
@@ -91,7 +96,7 @@ pub fn set_map(
         return;
     }
 
-    map.set_bombs(BOMB_COUNT);
+    map.set_bombs(params.bomb_count);
 
     for (mut tile, mut physics) in query.iter_mut() {
         tile.kind = map.map[tile.index_in_map];

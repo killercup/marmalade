@@ -22,6 +22,7 @@ Tools: `cargo install wasm-bindgen`, `brew install binaryen`
 Build:
 
 ```
+cd dist
 cargo build --release --target wasm32-unknown-unknown
 wasm-bindgen --web --out-dir=. $CARGO_TARGET_DIR/wasm32-unknown-unknown/release/marmalade.wasm
 wasm-opt -Oz -o marmalade_bg.wasm marmalade_bg.wasm

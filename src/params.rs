@@ -1,4 +1,9 @@
 pub struct Params {
+    pub block_size: f32,
+    pub block_offset: f32,
+    pub map_rows: usize,
+    pub map_columns: usize,
+    pub bomb_count: usize,
     pub hint: bool,
     pub go_home_factor: f32,
     go_home_influence: (f32, f32),
@@ -11,6 +16,11 @@ pub struct Params {
 impl Params {
     pub fn regular() -> Self {
         Self {
+            block_size: 20.,
+            block_offset: 35.,
+            map_rows: 24,
+            map_columns: 24,
+            bomb_count: 64,
             hint: false,
             go_home_factor: 150. * 60.,
             go_home_influence: (0., 100.),
@@ -23,6 +33,11 @@ impl Params {
 
     pub fn chaos() -> Self {
         Self {
+            block_size: 20.,
+            block_offset: 35.,
+            map_rows: 24,
+            map_columns: 24,
+            bomb_count: 64,
             hint: false,
             go_home_factor: 30.,
             go_home_influence: (100., 600.),
