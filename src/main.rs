@@ -31,6 +31,7 @@ fn main() {
         ..Default::default()
     });
     app.add_plugins(DefaultPlugins);
+    app.add_state(GameStage::NewGame);
 
     app.add_plugin(PhysicsPlugin::default());
     app.insert_resource(Gravity::from(Vec2::ZERO));
@@ -56,20 +57,16 @@ fn main() {
         SystemSet::new()
             .label(SystemSets::GameplayControls)
             .with_system(zoom)
+            .with_system(map_actions::toggle_hint)
             .with_system(minesweeper::click_on_tile)
-            .with_system(map_actions::trigger_set_map)
             .with_system(stages::trigger_endgame)
             .with_system(stages::trigger_reset)
-            .with_system(map_actions::toggle_hint),
-    );
-    app.add_system_set(
-        SystemSet::new()
-            .label(SystemSets::Map)
-            .with_system(map_actions::set_map),
+            .with_system(killscreen::end_game),
     );
     app.add_system_set(
         SystemSet::new()
             .label(SystemSets::Movements)
+            .after(SystemSets::GameplayControls)
             .with_system(tile::mouse_input)
             .with_system(tile::go_home),
     );
@@ -77,17 +74,20 @@ fn main() {
         SystemSet::new()
             .label(SystemSets::Reactions)
             .after(SystemSets::Movements)
-            .after(SystemSets::Map)
             .with_system(minesweeper::clear)
-            .with_system(startscreen::draw)
-            .with_system(startscreen::hide)
-            .with_system(killscreen::draw)
-            .with_system(killscreen::hide)
             .with_system(minesweeper::go_nuclear_if_fast)
             .with_system(minesweeper::go_nuclear),
     );
 
-    app.add_event::<map_actions::SetMapEvent>();
+    app.add_system_set(
+        SystemSet::on_enter(GameStage::NewGame)
+            .with_system(map_actions::create_map)
+            .with_system(startscreen::draw),
+    );
+    app.add_system_set(SystemSet::on_exit(GameStage::NewGame).with_system(startscreen::hide));
+    app.add_system_set(SystemSet::on_enter(GameStage::KillScreen).with_system(killscreen::draw));
+    app.add_system_set(SystemSet::on_exit(GameStage::KillScreen).with_system(killscreen::hide));
+
     app.add_event::<minesweeper::BoomEvent>();
     app.add_event::<minesweeper::ClearTileEvent>();
     app.add_event::<startscreen::GameStartEvent>();
@@ -95,7 +95,6 @@ fn main() {
 
     app.register_type::<Tile>();
 
-    app.insert_resource(GameStage::NewGame);
     app.insert_resource(Params::regular());
 
     app.run();
@@ -104,7 +103,6 @@ fn main() {
 #[derive(SystemLabel, Debug, Clone, Copy, Hash, Eq, PartialEq)]
 enum SystemSets {
     GameplayControls,
-    Map,
     Movements,
     Reactions,
 }

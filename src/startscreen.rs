@@ -7,16 +7,7 @@ pub struct StartScreen;
 
 pub struct GameStartEvent;
 
-pub fn draw(
-    asset_server: Res<AssetServer>,
-    params: Res<Params>,
-    mut events: EventReader<GameStartEvent>,
-    mut commands: Commands,
-) {
-    if events.iter().next().is_none() {
-        return;
-    }
-
+pub fn draw(asset_server: Res<AssetServer>, params: Res<Params>, mut commands: Commands) {
     let count = params.bomb_count;
     let font = asset_server.load("fonts/FiraSans-Bold.ttf");
 
@@ -97,13 +88,6 @@ pub fn draw(
         .insert(StartScreen);
 }
 
-pub fn hide(
-    stage: Res<GameStage>,
-    start_screen: Query<(Entity,), With<StartScreen>>,
-    mut commands: Commands,
-) {
-    if *stage == GameStage::NewGame {
-        return;
-    };
+pub fn hide(start_screen: Query<(Entity,), With<StartScreen>>, mut commands: Commands) {
     start_screen.for_each(|(e,)| commands.entity(e).despawn());
 }

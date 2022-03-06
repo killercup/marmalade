@@ -7,15 +7,14 @@ pub struct KillScreen;
 
 pub struct GameOverEvent;
 
-pub fn draw(
-    asset_server: Res<AssetServer>,
-    mut events: EventReader<GameOverEvent>,
-    mut commands: Commands,
-) {
+pub fn end_game(mut events: EventReader<GameOverEvent>, mut stage: ResMut<State<GameStage>>) {
     if events.iter().next().is_none() {
         return;
     }
+    let _ = stage.set(GameStage::KillScreen);
+}
 
+pub fn draw(asset_server: Res<AssetServer>, mut commands: Commands) {
     let font = asset_server.load("fonts/FiraSans-Bold.ttf");
 
     commands
@@ -59,13 +58,6 @@ pub fn draw(
         .insert(KillScreen);
 }
 
-pub fn hide(
-    stage: Res<GameStage>,
-    kill_screen: Query<(Entity,), With<KillScreen>>,
-    mut commands: Commands,
-) {
-    if *stage == GameStage::KillScreen {
-        return;
-    };
+pub fn hide(kill_screen: Query<(Entity,), With<KillScreen>>, mut commands: Commands) {
     kill_screen.for_each(|(e,)| commands.entity(e).despawn());
 }

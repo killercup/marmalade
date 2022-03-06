@@ -5,7 +5,6 @@ use rand::{thread_rng, Rng};
 
 use crate::{
     killscreen::{GameOverEvent, KillScreen},
-    map_actions::SetMapEvent,
     map_generator::Map,
     params::Params,
     stages::GameStage,
@@ -26,8 +25,7 @@ pub struct ClearTileEvent {
 
 pub fn click_on_tile(
     tiles: Query<(Entity, &Tile, &Transform)>,
-    stage: Res<GameStage>,
-    mut set_map: EventWriter<SetMapEvent>,
+    mut stage: ResMut<State<GameStage>>,
     mut events: EventReader<PickingEvent>,
     mut boom: EventWriter<BoomEvent>,
     mut game_over: EventWriter<GameOverEvent>,
@@ -37,8 +35,8 @@ pub fn click_on_tile(
     for event in events.iter() {
         if let PickingEvent::Clicked(e) = event {
             if let Some((entity, tile, transform)) = tiles.iter().find(|(tile, ..)| e == tile) {
-                if *stage != GameStage::MapSet {
-                    set_map.send(SetMapEvent);
+                if *stage.current() != GameStage::MapSet {
+                    let _ = stage.set(GameStage::MapSet);
                     clear.send(ClearTileEvent {
                         entity,
                         tile: tile.clone(),
@@ -76,15 +74,10 @@ pub fn click_on_tile(
 
 pub fn clear(
     map: Res<Map>,
-    stage: Res<GameStage>,
     mut events: EventReader<ClearTileEvent>,
     mut commands: Commands,
     tiles: Query<(&Tile, Entity)>,
 ) {
-    if *stage != GameStage::MapSet {
-        return;
-    }
-
     let mut events = events.iter();
     let ClearTileEvent { entity, tile } = if let Some(x) = events.next() {
         x
@@ -151,15 +144,13 @@ pub fn clear(
 }
 
 pub fn go_nuclear(
-    mut stage: ResMut<GameStage>,
+    mut app_state: ResMut<State<GameStage>>,
     mut events: EventReader<BoomEvent>,
     mut commands: Commands,
 ) {
     let mut rng = thread_rng();
     for BoomEvent { entity: _, source } in events.iter() {
-        if *stage != GameStage::KillScreen {
-            *stage = GameStage::KillScreen;
-        }
+        let _ = app_state.set(GameStage::KillScreen);
 
         for i in 0..20 {
             let direction = Vec3::new(

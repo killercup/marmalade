@@ -5,7 +5,7 @@ use crate::{
     startscreen::GameStartEvent, tile::Tile,
 };
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub enum GameStage {
     NewGame,
     MapSet,
@@ -25,25 +25,10 @@ pub fn endgame(commands: &mut Commands) {
     commands.insert_resource(Params::chaos());
 }
 
-pub fn trigger_reset(
-    params: Res<Params>,
-    asset_server: Res<AssetServer>,
-    keys: Res<Input<KeyCode>>,
-    meshes: ResMut<Assets<Mesh>>,
-    materials: ResMut<Assets<StandardMaterial>>,
-    query: Query<(Entity,), Or<(With<Tile>, With<Shrapnel>)>>,
-    mut commands: Commands,
-    mut trigger: EventWriter<GameStartEvent>,
-) {
+pub fn trigger_reset(keys: Res<Input<KeyCode>>, mut app_state: ResMut<State<GameStage>>) {
     if !keys.just_pressed(KeyCode::R) {
         return;
     }
 
-    for (entity,) in query.iter() {
-        commands.entity(entity).despawn();
-    }
-
-    create_map(params, asset_server, commands, meshes, materials);
-
-    trigger.send(GameStartEvent);
+    let _ = app_state.set(GameStage::NewGame);
 }

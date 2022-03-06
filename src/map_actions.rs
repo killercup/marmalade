@@ -5,14 +5,15 @@ use nalgebra_glm::smoothstep;
 
 use crate::{
     map_generator::Map,
+    minesweeper::Shrapnel,
     params::Params,
-    stages::GameStage,
     tile::{Tile, TileKind},
 };
 
 pub fn create_map(
     params: Res<Params>,
     asset_server: Res<AssetServer>,
+    old_entities: Query<(Entity,), Or<(With<Tile>, With<Shrapnel>)>>,
     mut commands: Commands,
     mut meshes: ResMut<Assets<Mesh>>,
     mut materials: ResMut<Assets<StandardMaterial>>,
@@ -26,8 +27,11 @@ pub fn create_map(
         base_color_texture: Some(albedo),
         ..Default::default()
     });
-    commands.insert_resource(GameStage::NewGame);
     commands.insert_resource(Params::regular());
+
+    for (entity,) in old_entities.iter() {
+        commands.entity(entity).despawn();
+    }
 
     let mut map = Map::new(params.map_rows, params.map_columns);
     map.set_bombs(params.bomb_count);
@@ -85,30 +89,6 @@ pub fn create_map(
     }
 
     commands.insert_resource(map);
-}
-
-#[derive(Debug)]
-pub struct SetMapEvent;
-
-pub fn trigger_set_map(keys: Res<Input<KeyCode>>, mut trigger: EventWriter<SetMapEvent>) {
-    if !keys.just_pressed(KeyCode::X) {
-        return;
-    }
-    trigger.send(SetMapEvent);
-}
-
-pub fn set_map(mut events: EventReader<SetMapEvent>, mut stage: ResMut<GameStage>) {
-    if *stage != GameStage::NewGame {
-        return;
-    }
-    if events.iter().next().is_none() {
-        return;
-    }
-
-    // Previously we set the map here, but that is no longer required
-
-    *stage = GameStage::MapSet;
-    info!("Game set");
 }
 
 pub fn toggle_hint(
