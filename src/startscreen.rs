@@ -5,8 +5,6 @@ use crate::params::Params;
 #[derive(Debug, Component)]
 pub struct StartScreen;
 
-pub struct GameStartEvent;
-
 pub fn draw(asset_server: Res<AssetServer>, params: Res<Params>, mut commands: Commands) {
     let count = params.bomb_count;
     let font = asset_server.load("fonts/FiraSans-Bold.ttf");
