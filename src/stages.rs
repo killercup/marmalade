@@ -7,6 +7,7 @@ pub enum GameStage {
     NewGame,
     MapSet,
     KillScreen,
+    WinScreen,
 }
 
 pub fn trigger_endgame(keys: Res<Input<KeyCode>>, mut commands: Commands) {

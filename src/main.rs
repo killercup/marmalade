@@ -20,6 +20,7 @@ mod minesweeper;
 mod params;
 mod stages;
 mod startscreen;
+mod winscreen;
 
 fn main() {
     color_eyre::install().unwrap();
@@ -84,8 +85,13 @@ fn main() {
             .with_system(startscreen::draw),
     );
     app.add_system_set(SystemSet::on_exit(GameStage::NewGame).with_system(startscreen::hide));
+    app.add_system_set(SystemSet::on_update(GameStage::MapSet).with_system(winscreen::you_win));
+
     app.add_system_set(SystemSet::on_enter(GameStage::KillScreen).with_system(killscreen::draw));
     app.add_system_set(SystemSet::on_exit(GameStage::KillScreen).with_system(killscreen::hide));
+
+    app.add_system_set(SystemSet::on_enter(GameStage::WinScreen).with_system(winscreen::draw));
+    app.add_system_set(SystemSet::on_exit(GameStage::WinScreen).with_system(winscreen::hide));
 
     app.add_event::<minesweeper::BoomEvent>();
     app.add_event::<minesweeper::ClearTileEvent>();
