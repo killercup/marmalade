@@ -1,6 +1,6 @@
 use bevy::prelude::*;
 
-use crate::{params::Params, stages::GameStage};
+use crate::params::Params;
 
 #[derive(Debug, Component)]
 pub struct StartScreen;

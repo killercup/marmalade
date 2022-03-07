@@ -1,9 +1,6 @@
 use bevy::prelude::*;
 
-use crate::{
-    killscreen::KillScreen, map_actions::create_map, minesweeper::Shrapnel, params::Params,
-    startscreen::GameStartEvent, tile::Tile,
-};
+use crate::params::Params;
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub enum GameStage {

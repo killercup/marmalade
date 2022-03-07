@@ -65,7 +65,7 @@ pub fn create_map(
                 TileKind::Boom => PhysicMaterial {
                     restitution: 0.2,
                     friction: 0.2,
-                    density: 5.,
+                    density: 10.,
                 },
                 TileKind::Danger(x) => PhysicMaterial {
                     restitution: 0.9,

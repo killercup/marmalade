@@ -37,11 +37,6 @@ pub fn click_on_tile(
             if let Some((entity, tile, transform)) = tiles.iter().find(|(tile, ..)| e == tile) {
                 if *stage.current() != GameStage::MapSet {
                     let _ = stage.set(GameStage::MapSet);
-                    clear.send(ClearTileEvent {
-                        entity,
-                        tile: tile.clone(),
-                    });
-                    return;
                 }
 
                 match tile.kind {
