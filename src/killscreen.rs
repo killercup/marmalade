@@ -11,6 +11,9 @@ pub fn end_game(mut events: EventReader<GameOverEvent>, mut stage: ResMut<State<
     if events.iter().next().is_none() {
         return;
     }
+    if *stage.current() == GameStage::WinScreen {
+        return;
+    }
     let _ = stage.set(GameStage::KillScreen);
 }
 

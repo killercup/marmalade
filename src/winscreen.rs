@@ -67,6 +67,9 @@ pub fn hide(win_screen: Query<(Entity,), With<WinScreen>>, mut commands: Command
 }
 
 pub fn you_win(mut state: ResMut<State<GameStage>>, query: Query<(&Tile,)>) {
+    if *state.current() == GameStage::KillScreen {
+        return;
+    }
     if query.iter().all(|(tile,)| tile.kind != TileKind::Fine) {
         let _ = state.set(GameStage::WinScreen);
     }
