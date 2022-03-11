@@ -18,6 +18,8 @@ pub enum TileKind {
     Boom,
     /// Is a bomb neighbor
     Danger(u8),
+    /// Touched and cleared
+    Defused(u8),
     /// Empty tile
     Fine,
 }

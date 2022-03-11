@@ -77,6 +77,11 @@ pub fn create_map(
                     friction: 0.2,
                     density: 1.,
                 },
+                TileKind::Defused(x) => PhysicMaterial {
+                    restitution: 0.9,
+                    friction: 0.2,
+                    density: 1. + 2. * smoothstep(1., 8., *x as f32),
+                },
             })
             .insert(Damping::from_linear(0.1).with_angular(0.9))
             .insert(Tile {
@@ -133,6 +138,9 @@ pub fn toggle_hint(
             }
             TileKind::Danger(_) => {
                 *material = orange_tile.clone();
+            }
+            TileKind::Defused(_) => {
+                *material = green_tile.clone();
             }
             TileKind::Fine => {
                 *material = green_tile.clone();

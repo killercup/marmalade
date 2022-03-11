@@ -61,6 +61,7 @@ pub fn click_on_tile(
                             tile: tile.clone(),
                         });
                     }
+                    TileKind::Defused(_) => {}
                 }
             }
         }
@@ -90,9 +91,9 @@ pub fn clear(
         pub entity: Entity,
     }
 
-    let mut existing_tiles: HashMap<usize, Entity> = tiles
+    let mut existing_tiles: HashMap<usize, (Tile, Entity)> = tiles
         .iter()
-        .map(|(tile, entity)| (tile.index_in_map, entity))
+        .map(|(tile, entity)| (tile.index_in_map, (tile.clone(), entity)))
         .collect();
 
     let me = Thingy {
@@ -106,7 +107,7 @@ pub fn clear(
         map: &Map,
         me: Thingy,
         commands: &mut Commands,
-        existing_tiles: &mut HashMap<usize, Entity>,
+        existing_tiles: &mut HashMap<usize, (Tile, Entity)>,
     ) {
         let neighbors = map.neighbors(me.index);
         let neighbors_we_care_about: Vec<_> = neighbors
@@ -120,7 +121,7 @@ pub fn clear(
         existing_tiles.remove(&me.index);
 
         for (_coords, index, _kind) in neighbors_we_care_about {
-            let entity = if let Some(e) = existing_tiles.get(index) {
+            let (_tile, entity) = if let Some(e) = existing_tiles.get(index) {
                 e
             } else {
                 continue;
@@ -134,6 +135,22 @@ pub fn clear(
                 commands,
                 existing_tiles,
             );
+        }
+
+        let defused_neighbors: Vec<_> = neighbors
+            .iter()
+            .filter(|(_coords, index, kind)| {
+                existing_tiles.get(index).is_some() && matches!(*kind, TileKind::Danger(_))
+            })
+            .collect();
+
+        for (_coords, index, _kind) in defused_neighbors {
+            let (tile, entity) = if let Some(e) = existing_tiles.get(index) {
+                e
+            } else {
+                continue;
+            };
+            commands.entity(*entity).despawn();
         }
     }
 }
